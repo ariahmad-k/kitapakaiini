@@ -73,8 +73,6 @@ ORDER BY sh.tanggal DESC");
                                 <label>Stok Baru:</label><br>
                                 <input type="number" name="stok" value="<?= $data['stok'] ?>"><br><br>
                                 <button type="submit" name="submit"  class="btn btn-primary">Simpan</button>
-                               
-
                             </form>
                         </div>
                     </div>
