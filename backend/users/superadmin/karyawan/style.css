@@ -1,0 +1,33 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
+
+body {
+  font-family: "Roboto", sans-serif;
+  color: black;
+}
+
+.judul {
+  background: #6a9af2;
+  padding: 10px;
+  text-align: center;
+}
+
+.judul h1,
+h2,
+h3 {
+  height: 50px;
+}
+
+a {
+  /* color: #fff; */
+  padding: 5px;
+  text-decoration: none;
+}
+
+.table {
+  border-collapse: collapse;
+}
+
+table.table th th,
+table.table tr td {
+  padding: 10px 20px;
+}
