@@ -210,7 +210,7 @@ while ($row = mysqli_fetch_assoc($result_detail)) {
                     </div>
 
                     <div class="mt-4 text-center no-print">
-                        <a href="riwayat_pesanan.php" class="btn btn-secondary">
+                        <a href="riwayat/data_riwayat.php" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali ke Riwayat
                         </a>
                         <button onclick="printInvoice()" class="btn btn-primary">

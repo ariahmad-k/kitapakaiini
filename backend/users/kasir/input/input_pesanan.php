@@ -157,8 +157,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cart_data'])) {
                             </ol>
                             <?php if (isset($pesan_sukses)): ?>
                                 <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    <?php echo $pesan_sukses; ?>
-                                    <a href="cetak_struk.php?id=<?php echo $id_transaksi; ?>" target="_blank" class="btn btn-sm btn-info ml-2">Cetak Struk</a>
+                                    <?php echo $pesan_sukses;
+                                    // Ganti baris $pesan_sukses Anda dengan ini
+
+                                    $pesan_sukses = "Transaksi berhasil disimpan dengan ID: $id_pesanan_baru.
+                                    <a href='../detail_pesanan.php?id=$id_pesanan_baru' target='_blank' class='btn btn-sm btn-info ms-2 fw-bold'>
+                                        <i class='fas fa-print'></i> Cetak Struk
+                                    </a>";
+
+                                    $clear_cart_js = "<script>
+                                        localStorage.removeItem('kasir_cart');
+                                    </script>"; ?>
+                                    <br>    
                                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                 </div>
                             <?php endif; ?>
