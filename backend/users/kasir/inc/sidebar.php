@@ -16,10 +16,10 @@ if (session_status() == PHP_SESSION_NONE) {
                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                 Pesanan Masuk
             </a>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="../riwayat/data_riwayat.php">
                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                Riyawat Pesanan
-            </a> 
+                Riwayat Pesanan
+            </a>
         </div>
     </div>
     <div class="sb-sidenav-footer">

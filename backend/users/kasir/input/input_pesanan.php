@@ -79,7 +79,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cart_data'])) {
             mysqli_commit($koneksi);
 
             // Set pesan sukses dan siapkan JavaScript untuk membersihkan keranjang
-            $pesan_sukses = "Transaksi berhasil disimpan dengan ID: $id_pesanan_baru.";
+            // ... setelah mysqli_commit($koneksi);
+
+            // Set pesan sukses dengan tambahan link/tombol Cetak Struk
+            $pesan_sukses = "Transaksi berhasil disimpan dengan ID: $id_pesanan_baru. 
+                 <a href='../detail_pesanan.php?id=$id_pesanan_baru' target='_blank' class='btn btn-sm btn-info ms-2 fw-bold'>
+                     <i class='fas fa-print'></i> Cetak Struk
+                 </a>";
+
             $clear_cart_js = "<script>localStorage.removeItem('kasir_cart');</script>";
         } catch (Exception $e) {
             // Jika ada error, batalkan semua query (rollback)
@@ -148,117 +155,117 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cart_data'])) {
                                 <li class="breadcrumb-item"><a href="../index.php">Dashboard</a></li>
                                 <li class="breadcrumb-item active">Input Pesanan</li>
                             </ol>
-                        <?php if (isset($pesan_sukses)): ?>
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <?php echo $pesan_sukses; ?>
-                                <a href="cetak_struk.php?id=<?php echo $id_transaksi; ?>" target="_blank" class="btn btn-sm btn-info ml-2">Cetak Struk</a>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        <?php endif; ?>
-                        <?php if (isset($pesan_error)): ?>
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <?php echo $pesan_error; ?>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        <?php endif; ?>
+                            <?php if (isset($pesan_sukses)): ?>
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <?php echo $pesan_sukses; ?>
+                                    <a href="cetak_struk.php?id=<?php echo $id_transaksi; ?>" target="_blank" class="btn btn-sm btn-info ml-2">Cetak Struk</a>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            <?php endif; ?>
+                            <?php if (isset($pesan_error)): ?>
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <?php echo $pesan_error; ?>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            <?php endif; ?>
 
-                    </div>
+                        </div>
 
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="row">
-                                <?php
-                                $query_produk = "SELECT p.id_produk, p.nama_produk, p.harga_produk, p.poto_produk, p.kategori, sh.stok 
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="row">
+                                    <?php
+                                    $query_produk = "SELECT p.id_produk, p.nama_produk, p.harga_produk, p.poto_produk, p.kategori, sh.stok 
                                                  FROM produk p
                                                  LEFT JOIN stok_harian sh ON p.id_produk = sh.id_produk
                                                  ORDER BY p.kategori, p.nama_produk";
-                                $result_produk = $koneksi->query($query_produk);
+                                    $result_produk = $koneksi->query($query_produk);
 
-                                if ($result_produk->num_rows > 0) {
-                                    $current_kategori = '';
-                                    while ($row = $result_produk->fetch_assoc()) {
-                                        if ($row['kategori'] != $current_kategori) {
-                                            echo '<div class="col-12 mt-4"><h4>' . htmlspecialchars(strtoupper($row['kategori'])) . '</h4></div>';
-                                            $current_kategori = $row['kategori'];
-                                        }
-                                ?>
-                                        <div class="col-lg-3 col-md-4 mb-4">
-                                            <div class="card product-card h-100"
-                                                data-product-id="<?php echo $row['id_produk']; ?>"
-                                                data-product-name="<?php echo htmlspecialchars($row['nama_produk']); ?>"
-                                                data-product-price="<?php echo $row['harga_produk']; ?>"
-                                                data-product-stock="<?php echo $row['stok'] ?? 0; ?>">
-                                                <img src="../../../assets/img/produk/<?php echo $row['poto_produk']; ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['nama_produk']); ?>">
-                                                <div class="card-body text-center d-flex flex-column">
-                                                    <h6 class="card-title flex-grow-1"><?php echo htmlspecialchars($row['nama_produk']); ?></h6>
-                                                    <p class="card-text mb-2"><strong>Rp <?php echo number_format($row['harga_produk'], 0, ',', '.'); ?></strong></p>
-                                                    <p class="card-text small text-muted">Stok: <?php echo $row['stok'] ?? 0; ?></p>
-                                                    <?php if (($row['stok'] ?? 0) > 0): ?>
-                                                        <button class="btn btn-primary btn-sm add-to-cart-btn mt-auto">Pilih</button>
-                                                    <?php else: ?>
-                                                        <button class="btn btn-secondary btn-sm mt-auto" disabled>Stok Habis</button>
-                                                    <?php endif; ?>
+                                    if ($result_produk->num_rows > 0) {
+                                        $current_kategori = '';
+                                        while ($row = $result_produk->fetch_assoc()) {
+                                            if ($row['kategori'] != $current_kategori) {
+                                                echo '<div class="col-12 mt-4"><h4>' . htmlspecialchars(strtoupper($row['kategori'])) . '</h4></div>';
+                                                $current_kategori = $row['kategori'];
+                                            }
+                                    ?>
+                                            <div class="col-lg-3 col-md-4 mb-4">
+                                                <div class="card product-card h-100"
+                                                    data-product-id="<?php echo $row['id_produk']; ?>"
+                                                    data-product-name="<?php echo htmlspecialchars($row['nama_produk']); ?>"
+                                                    data-product-price="<?php echo $row['harga_produk']; ?>"
+                                                    data-product-stock="<?php echo $row['stok'] ?? 0; ?>">
+                                                    <img src="../../../assets/img/produk/<?php echo $row['poto_produk']; ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['nama_produk']); ?>">
+                                                    <div class="card-body text-center d-flex flex-column">
+                                                        <h6 class="card-title flex-grow-1"><?php echo htmlspecialchars($row['nama_produk']); ?></h6>
+                                                        <p class="card-text mb-2"><strong>Rp <?php echo number_format($row['harga_produk'], 0, ',', '.'); ?></strong></p>
+                                                        <p class="card-text small text-muted">Stok: <?php echo $row['stok'] ?? 0; ?></p>
+                                                        <?php if (($row['stok'] ?? 0) > 0): ?>
+                                                            <button class="btn btn-primary btn-sm add-to-cart-btn mt-auto">Pilih</button>
+                                                        <?php else: ?>
+                                                            <button class="btn btn-secondary btn-sm mt-auto" disabled>Stok Habis</button>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                <?php
+                                    <?php
+                                        }
+                                    } else {
+                                        echo '<div class="col-12"><p>Belum ada produk terdaftar.</p></div>';
                                     }
-                                } else {
-                                    echo '<div class="col-12"><p>Belum ada produk terdaftar.</p></div>';
-                                }
-                                ?>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="card sticky-top" style="top: 20px;">
-                                <div class="card-header">
-                                    <h4 class="mb-0">Detail Pesanan</h4>
+                                    ?>
                                 </div>
-                                <div class="card-body">
-                                    <form id="orderForm" action="input_pesanan.php" method="POST">
-                                        <div id="cart-items" style="max-height: 300px; overflow-y: auto;">
-                                            <p class="text-muted text-center" id="empty-cart-message">Keranjang kosong.</p>
-                                        </div>
-                                        <hr>
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <h4>Total:</h4>
-                                            <h4 id="total-display">Rp 0</h4>
-                                        </div>
+                            </div>
 
-                                        <input type="hidden" name="cart_data" id="cart-data-input">
-                                        <input type="hidden" name="total_amount" id="total-amount-input">
+                            <div class="col-md-4">
+                                <div class="card sticky-top" style="top: 20px;">
+                                    <div class="card-header">
+                                        <h4 class="mb-0">Detail Pesanan</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="orderForm" action="input_pesanan.php" method="POST">
+                                            <div id="cart-items" style="max-height: 300px; overflow-y: auto;">
+                                                <p class="text-muted text-center" id="empty-cart-message">Keranjang kosong.</p>
+                                            </div>
+                                            <hr>
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h4>Total:</h4>
+                                                <h4 id="total-display">Rp 0</h4>
+                                            </div>
 
-                                        <div class="form-group mb-3">
-                                            <label for="nama_pemesan" class="form-label">Nama Pemesan (Opsional):</label>
-                                            <input type="text" class="form-control" id="nama_pemesan" name="nama_pemesan" placeholder="Nama Pelanggan">
-                                        </div>
-                                        <div class="form-group mb-3">
-                                            <label for="jenis_pesanan" class="form-label">Jenis Pesanan:</label>
-                                            <select class="form-select" id="jenis_pesanan" name="jenis_pesanan" required>
-                                                <option value="take_away">Dine In</option>
-                                                <option value="dine_in">Take Away</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group mb-3">
-                                            <label for="metode_pembayaran" class="form-label">Metode Pembayaran:</label>
-                                            <select class="form-select" id="metode_pembayaran" name="metode_pembayaran" required>
-                                                <option value="tunai">Tunai</option>
-                                                <option value="qris">QRIS</option>
-                                                <option value="debit">Debit</option>
-                                            </select>
-                                        </div>
+                                            <input type="hidden" name="cart_data" id="cart-data-input">
+                                            <input type="hidden" name="total_amount" id="total-amount-input">
 
-                                        <div class="d-grid gap-2">
-                                            <button type="submit" class="btn btn-success" id="charge-btn" disabled>Bayar</button>
-                                            <button type="button" class="btn btn-danger" id="clear-cart-btn">Kosongkan</button>
-                                        </div>
-                                    </form>
+                                            <div class="form-group mb-3">
+                                                <label for="nama_pemesan" class="form-label">Nama Pemesan (Opsional):</label>
+                                                <input type="text" class="form-control" id="nama_pemesan" name="nama_pemesan" placeholder="Nama Pelanggan">
+                                            </div>
+                                            <div class="form-group mb-3">
+                                                <label for="jenis_pesanan" class="form-label">Jenis Pesanan:</label>
+                                                <select class="form-select" id="jenis_pesanan" name="jenis_pesanan" required>
+                                                    <option value="take_away">Dine In</option>
+                                                    <option value="dine_in">Take Away</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group mb-3">
+                                                <label for="metode_pembayaran" class="form-label">Metode Pembayaran:</label>
+                                                <select class="form-select" id="metode_pembayaran" name="metode_pembayaran" required>
+                                                    <option value="tunai">Tunai</option>
+                                                    <option value="qris">QRIS</option>
+                                                    <option value="debit">Debit</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="d-grid gap-2">
+                                                <button type="submit" class="btn btn-success" id="charge-btn" disabled>Bayar</button>
+                                                <button type="button" class="btn btn-danger" id="clear-cart-btn">Kosongkan</button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
             </main>
             <footer class="py-4 bg-light mt-auto">
                 <div class="container-fluid px-4">

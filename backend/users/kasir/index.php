@@ -34,7 +34,7 @@
                     <li>
                         <hr class="dropdown-divider" />
                     </li>
-                    <li><a class="dropdown-item" href="../../../logout.php">Logout</a></li>
+                    <li><a class="dropdown-item" href="../../logout.php">Logout</a></li>
                 </ul>
             </li>
         </ul>
@@ -60,9 +60,9 @@
                             <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                             Pesanan Masuk
                         </a>
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" href="riwayat/data_riwayat.php">
                             <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                            Riyawat Pesanan
+                            Riwayat Pesanan
                         </a>
                     </div>
                 </div>
