@@ -1,209 +1,145 @@
 <?php
-include "../../../koneksi.php";
+session_start();
+include('../../../koneksi.php');
 
-$id_karyawan = isset($_GET['id_karyawan']) ? $_GET['id_karyawan'] : null;
-
-if ($id_karyawan === null) {
-    echo "<div class='alert alert-danger'>ID tidak ditemukan.</div>";
+// 1. KEAMANAN: Cek hak akses. Hanya owner yang boleh mengedit.
+if (!isset($_SESSION['user']) || $_SESSION['user']['jabatan'] !== 'owner') {
+    header('Location: ../../login.php');
     exit;
 }
 
-$query_mysql = mysqli_query($koneksi, "SELECT * FROM karyawan WHERE id_karyawan='$id_karyawan'");
+// 2. VALIDASI & AMBIL DATA KARYAWAN YANG AKAN DIEDIT
+if (!isset($_GET['id_karyawan'])) {
+    $_SESSION['notif'] = ['pesan' => 'Aksi tidak valid, ID karyawan tidak ditemukan.', 'tipe' => 'warning'];
+    header('Location: data_karyawan.php');
+    exit;
+}
+$id_karyawan_edit = $_GET['id_karyawan'];
 
-if (mysqli_num_rows($query_mysql) == 0) {
-    echo "<div class='alert alert-danger'>Data tidak ditemukan.</div>";
+// Ambil data lama menggunakan prepared statement untuk ditampilkan di form
+$stmt_get = mysqli_prepare($koneksi, "SELECT * FROM karyawan WHERE id_karyawan = ?");
+mysqli_stmt_bind_param($stmt_get, "i", $id_karyawan_edit);
+mysqli_stmt_execute($stmt_get);
+$result_get = mysqli_stmt_get_result($stmt_get);
+$data = mysqli_fetch_assoc($result_get);
+
+if (!$data) {
+    $_SESSION['notif'] = ['pesan' => 'Data karyawan tidak ditemukan.', 'tipe' => 'warning'];
+    header('Location: data_karyawan.php');
     exit;
 }
 
-$data = mysqli_fetch_assoc($query_mysql);
-
+// 3. LOGIKA PROSES FORM SAAT DISUBMIT (UPDATE DATA)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_karyawan = $_POST['id_karyawan'] ?? null;
-    $nama = $_POST[''] ?? '';
-    $jabatan = $_POST['jabatan'] ?? '';
-    $no_tlp = $_POST['no_tlp'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
+    // Ambil semua data dari form
+    $id_karyawan_post = $_POST['id_karyawan'];
+    $nama = $_POST['nama'];
+    $username = $_POST['username'];
+    $jabatan = $_POST['jabatan'];
+    $no_tlp = $_POST['no_tlp'];
+    $email = $_POST['email'];
+    $password = $_POST['password']; // Bisa kosong
 
-    // Validasi sederhana 
-    if ($id_karyawan === null || $nama === '' || $jabatan === '' || $no_tlp === '' || $email === '' || $password === '') {
-        die("Semua field harus diisi!");
-    }
-
-    
-    // Prepared statement untuk update
-    $stmt = $koneksi->prepare("UPDATE karyawan SET username=?, jabatan=?, no_tlp=?, email=?, password=?, WHERE id_karyawan=?");
-    if (!$stmt) {
-        die("Prepare failed: (" . $koneksi->errno . ") " . $koneksi->error);
-    }
-
-    $stmt->bind_param("sssssi", $nama, $jabatan, $no_tlp, $email, $password,  $id_karyawan);
-
-    if ($stmt->execute()) {
-        echo "<script>
-                alert('Data berhasil diupdate.');
-                window.location.href = 'data_karyawan.php';
-            </script>";
-        exit;
+    // 4. LOGIKA CERDAS UNTUK UPDATE PASSWORD
+    // Cek apakah admin mengisi kolom password baru.
+    if (!empty($password)) {
+        // Jika diisi, hash password baru dan siapkan query UPDATE dengan kolom password
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        $query_update = "UPDATE karyawan SET nama=?, username=?, jabatan=?, no_tlp=?, email=?, password=? WHERE id_karyawan=?";
+        $stmt_update = mysqli_prepare($koneksi, $query_update);
+        mysqli_stmt_bind_param($stmt_update, "ssssssi", $nama, $username, $jabatan, $no_tlp, $email, $hashed_password, $id_karyawan_post);
     } else {
-        echo "Error saat update data: " . $stmt->error;
-}
-} else {
-    echo "Data tidak lengkap atau metode request salah.";
-}
+        // Jika dikosongkan, siapkan query UPDATE TANPA mengubah kolom password
+        $query_update = "UPDATE karyawan SET nama=?, username=?, jabatan=?, no_tlp=?, email=? WHERE id_karyawan=?";
+        $stmt_update = mysqli_prepare($koneksi, $query_update);
+        mysqli_stmt_bind_param($stmt_update, "sssssi", $nama, $username, $jabatan, $no_tlp, $email, $id_karyawan_post);
+    }
 
+    // Eksekusi query update
+    if (mysqli_stmt_execute($stmt_update)) {
+        $_SESSION['notif'] = ['pesan' => 'Data karyawan berhasil diperbarui.', 'tipe' => 'success'];
+    } else {
+        $_SESSION['notif'] = ['pesan' => 'Gagal memperbarui data. Mungkin username/email sudah digunakan.', 'tipe' => 'danger'];
+    }
+    header("Location: data_karyawan.php");
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="id">
 <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <title>Dashboard - Pemilik</title>
-    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+    <title>Edit Karyawan - Owner</title>
     <link href="../../../css/styles.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-</head>
+    <link rel="icon" type="image/png" href="../../../assets/img/logo-kuebalok.png"> 
 
+</head>
 <body class="sb-nav-fixed">
-    <?php
-    include "../inc/navbar.php";
-    ?>
+    <?php include "../inc/navbar.php"; ?>
     <div id="layoutSidenav">
         <div id="layoutSidenav_nav">
-            <?php
-            include "../inc/sidebar.php";
-            ?>
+            <?php include "../inc/sidebar.php"; ?>
         </div>
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
-                    <div class="row">
-                        <div class="col-xl-12 col-md-12">
-                            <h1 class="mt-4">Data Karyawan</h1>
-                            <ol class="breadcrumb mb-4">
-                                <li class="breadcrumb-item"><a href="../index.php">Dashboard</a></li>
-                                <li class="breadcrumb-item"><a href="../karyawan/data_karyawan.php">Data Karyawan</a></li>
-                                <li class="breadcrumb-item active">Edit Karyawan</li>
-                            </ol>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12 mb-3">
+                    <h1 class="mt-4">Edit Data Karyawan</h1>
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item"><a href="../index.php">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="data_karyawan.php">Data Karyawan</a></li>
+                        <li class="breadcrumb-item active">Edit</li>
+                    </ol>
 
-                            <form action="update.php" method="post">
-                                <input type="hidden" name="id_karyawan" value="<?php echo htmlspecialchars($data['id_karyawan']); ?>">
+                    <div class="card mb-4">
+                        <div class="card-header"><i class="fas fa-user-edit me-1"></i>Formulir Edit: <?= htmlspecialchars($data['nama']) ?></div>
+                        <div class="card-body">
+                            <form action="" method="post">
+                                <input type="hidden" name="id_karyawan" value="<?= htmlspecialchars($data['id_karyawan']) ?>">
 
-                                <!-- nama -->
                                 <div class="mb-3">
-                                    <label for="nama" class="form-label">Nama :</label>
-                                    <input type="text" class="form-control" name="nama" id="nama" required value="<?php echo htmlspecialchars($data['username']); ?>" />
+                                    <label for="nama" class="form-label">Nama Lengkap</label>
+                                    <input type="text" class="form-control" name="nama" id="nama" value="<?= htmlspecialchars($data['nama']) ?>" required />
                                 </div>
-
-                                <!-- Jabatan -->
                                 <div class="mb-3">
-                                    <label for="jabatan" class="form-label">Jabatan:</label>
-                                    <select class="form-control" name="jabatan" id="jabatan" required>
-                                        <option value="">-- Pilih Jabatan --</option>
-                                        <option value="Admin" <?php if ($data['jabatan'] == 'Admin') echo 'selected'; ?>>Admin</option>
-                                        <option value="Kasir" <?php if ($data['jabatan'] == 'Kasir') echo 'selected'; ?>>Kasir</option>
-                                        <option value="Owner" <?php if ($data['jabatan'] == 'Owner') echo 'selected'; ?>>Owner</option>
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" name="username" id="username" value="<?= htmlspecialchars($data['username']) ?>" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="jabatan" class="form-label">Jabatan</label>
+                                    <select class="form-select" name="jabatan" id="jabatan" required>
+                                        <option value="kasir" <?= ($data['jabatan'] === 'kasir') ? 'selected' : '' ?>>Kasir</option>
+                                        <option value="admin" <?= ($data['jabatan'] === 'admin') ? 'selected' : '' ?>>Admin</option>
+                                        <option value="owner" <?= ($data['jabatan'] === 'owner') ? 'selected' : '' ?>>Owner</option>
                                     </select>
                                 </div>
-
-                                <!-- telepon  -->
                                 <div class="mb-3">
-                                    <label for="no_tlp" class="form-label">No. Telepon :</label>
-                                    <input type="text" class="form-control" name="no_tlp" id="no_tlp" required value="<?php echo htmlspecialchars($data['no_tlp']); ?>" />
+                                    <label for="no_tlp" class="form-label">No. Telepon</label>
+                                    <input type="text" class="form-control" name="no_tlp" id="no_tlp" value="<?= htmlspecialchars($data['no_tlp']) ?>" required />
                                 </div>
-
-                                <!-- Email  -->
                                 <div class="mb-3">
-                                    <label for="email" class="form-label">Email :</label>
-                                    <input type="email" class="form-control" name="email" id="email" required value="<?php echo htmlspecialchars($data['email']); ?>" />
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="email" id="email" value="<?= htmlspecialchars($data['email']) ?>" required />
                                 </div>
-
-                                <!-- Email  -->
+                                <hr>
                                 <div class="mb-3">
-                                    <label for="password" class="form-label">Password :</label>
-                                    <input type="password" class="form-control" name="password" id="password" required value="<?php echo htmlspecialchars($data['password']); ?>" />
+                                    <label for="password" class="form-label">Password Baru</label>
+                                    <input type="password" class="form-control" name="password" id="password" placeholder="Kosongkan jika tidak ingin mengubah password" />
+                                    <small class="form-text text-muted">Hanya isi kolom ini jika Anda ingin mengubah password karyawan.</small>
                                 </div>
-
-                                <div class="mb-3">
-                                    <button type="submit" class="btn btn-success">Simpan</button>
-                                </div>
+                                <button type="submit" name="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                <a href="data_karyawan.php" class="btn btn-secondary">Batal</a>
                             </form>
                         </div>
                     </div>
-                    <div class="row">
-
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <i class="fas fa-table me-1"></i>
-                                Data Karyawan
-                            </div>
-                            <div class="card-body">
-                                <table id="data_menu" class="table table-striped table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 80px;">ID Kar</th>
-                                            <th>Nama</th>
-                                            <th>Jabatan</th>
-                                            <th>No. Telepon</th>
-                                            <th>Email</th>
-                                            <th>Password</th>
-                                            <th style="width: 80px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        while ($data = mysqli_fetch_array($query_mysql)) {
-                                        ?>
-                                            <tr>
-                                                <td><?php echo $nomor++; ?></td>
-                                                <td><?php echo $data['username']; ?></td>
-                                                <td><?php echo $data['jabatan']; ?></td>
-                                                <td><?php echo $data['no_tlp']; ?></td>
-                                                <td><?php echo $data['email']; ?></td>
-                                                <td><?php echo $data['password']; ?></td>
-                                                <td>
-                                                    <div class="d-flex gap-2">
-                                                        <a class="btn btn-primary btn-sm" href="kar_edit.php?id_karyawan=<?php echo $data['id_karyawan']; ?>">Edit</a>
-                                                        <a class="btn btn-danger btn-sm" href="kar_hapus.php?id_karyawan=<?php echo $data['id_karyawan']; ?>">Hapus</a>
-                                                    </div>
-                                                </td>
-
-                                            </tr>
-                                        <?php } ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-            </main>
-
-            <footer class="py-4 bg-light mt-auto">
-                <div class="container-fluid px-4">
-                    <div class="d-flex align-items-center justify-content-between small">
-                        <div class="text-muted">Copyright &copy; KueBalok 2025</div>
-                    </div>
                 </div>
-            </footer>
+            </main>
+            <footer class="py-4 bg-light mt-auto">
+                </footer>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
-        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../../js/scripts.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
-    <script src="../../../assets/demo/chart-area-demo.js"></script>
-    <script src="../../../assets/demo/chart-bar-demo.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js"
-        crossorigin="anonymous"></script>
-    <script src="../../../js/datatables-simple-demo.js"></script>
 </body>
-
 </html>

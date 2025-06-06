@@ -86,6 +86,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM produk ORDER BY kategori, nama_p
     <title>Tambah Menu - Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
     <link href="../../../css/styles.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="../../../assets/img/logo-kuebalok.png">
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 </head>
 <body class="sb-nav-fixed">

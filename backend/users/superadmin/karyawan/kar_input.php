@@ -1,163 +1,139 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
+session_start();
+include('../../../koneksi.php');
 
+// 1. KEAMANAN: Cek hak akses. Hanya owner yang boleh menambah karyawan.
+if (!isset($_SESSION['user']) || $_SESSION['user']['jabatan'] !== 'owner') {
+    header('Location: ../../../login.php');
+    exit;
+}
+
+// 2. LOGIKA PROSES FORM SAAT DISUBMIT
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Ambil data dari form
+    $nama = $_POST['nama'];
+    $username = $_POST['username'];
+    $password = $_POST['password']; // Ambil password mentah
+    $jabatan = $_POST['jabatan'];
+    $no_tlp = $_POST['no_tlp'];
+    $email = $_POST['email'];
+
+    // 3. VALIDASI: Cek apakah username sudah ada
+    $stmt_check = mysqli_prepare($koneksi, "SELECT id_karyawan FROM karyawan WHERE username = ?");
+    mysqli_stmt_bind_param($stmt_check, "s", $username);
+    mysqli_stmt_execute($stmt_check);
+    $result_check = mysqli_stmt_get_result($stmt_check);
+
+    if (mysqli_num_rows($result_check) > 0) {
+        // Jika username sudah ada, buat notifikasi error
+        $_SESSION['notif'] = ['pesan' => 'Gagal! Username "' . htmlspecialchars($username) . '" sudah digunakan.', 'tipe' => 'danger'];
+        header('Location: kar_input.php'); // Kembali ke form input
+        exit;
+    }
+
+    // 4. KEAMANAN: Hash password sebelum disimpan ke database
+    $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+    // 5. KEAMANAN: Gunakan Prepared Statement untuk INSERT data
+    $query = "INSERT INTO karyawan (nama, username, password, jabatan, no_tlp, email) VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt = mysqli_prepare($koneksi, $query);
+    mysqli_stmt_bind_param($stmt, "ssssss", $nama, $username, $hashed_password, $jabatan, $no_tlp, $email);
+
+    if (mysqli_stmt_execute($stmt)) {
+        // Jika berhasil, buat notifikasi sukses dan arahkan ke halaman daftar
+        $_SESSION['notif'] = ['pesan' => 'Karyawan baru berhasil ditambahkan.', 'tipe' => 'success'];
+        header('Location: data_karyawan.php');
+    } else {
+        // Jika gagal, buat notifikasi error dan arahkan kembali ke form input
+        $_SESSION['notif'] = ['pesan' => 'Gagal menambahkan karyawan. Terjadi error.', 'tipe' => 'danger'];
+        header('Location: kar_input.php');
+    }
+    exit;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="id">
 <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <title>Dashboard - Pemilik</title>
-    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+    <title>Tambah Karyawan - Owner</title>
     <link href="../../../css/styles.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-</head>
+    <link rel="icon" type="image/png" href="../../../assets/img/logo-kuebalok.png"> 
 
+</head>
 <body class="sb-nav-fixed">
-    <?php
-    include "../inc/navbar.php";
-    ?>
+    <?php include "../inc/navbar.php"; ?>
     <div id="layoutSidenav">
         <div id="layoutSidenav_nav">
-            <?php
-            include "../inc/sidebar.php";
-            ?>
+            <?php include "../inc/sidebar.php"; ?>
         </div>
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
-                    <div class="row">
-                        <div class="col-xl-12 col-md-12">
-                            <h1 class="mt-4">Data Karyawan</h1>
-                            <ol class="breadcrumb mb-4">
-                                <li class="breadcrumb-item"><a href="../index.php">Dashboard</a></li>
-                                <li class="breadcrumb-item"><a href="../karyawan/data_karyawan.php">Data Karyawan</a></li>
-                                <li class="breadcrumb-item active">Edit Karyawan</li>
-                            </ol>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12 mb-3">
+                    <h1 class="mt-4">Tambah Data Karyawan</h1>
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item"><a href="../index.php">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="data_karyawan.php">Data Karyawan</a></li>
+                        <li class="breadcrumb-item active">Tambah Karyawan</li>
+                    </ol>
 
-                            <form action="input-aksi.php" method="post">
+                     <?php
+                    // Menampilkan notifikasi jika ada error dari proses sebelumnya (misal: username duplikat)
+                    if (isset($_SESSION['notif'])) {
+                        $notif = $_SESSION['notif'];
+                        echo '<div class="alert alert-' . htmlspecialchars($notif['tipe']) . ' alert-dismissible fade show" role="alert">';
+                        echo htmlspecialchars($notif['pesan']);
+                        echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+                        unset($_SESSION['notif']);
+                    }
+                    ?>
 
-                                <!-- Nama -->
+                    <div class="card mb-4">
+                        <div class="card-header"><i class="fas fa-user-plus me-1"></i>Formulir Karyawan Baru</div>
+                        <div class="card-body">
+                            <form action="" method="post">
                                 <div class="mb-3">
-                                    <label for="nama" class="form-label">Nama :</label>
+                                    <label for="nama" class="form-label">Nama Lengkap</label>
                                     <input type="text" class="form-control" name="nama" id="nama" required />
                                 </div>
                                 <div class="mb-3">
-                                    <label for="username" class="form-label">Username :</label>
-                                    <input type="text" class="form-control" name="username" id="username" />
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" name="username" id="username" required />
                                 </div>
-
-
-                                <!-- Jabatan -->
                                 <div class="mb-3">
-                                    <label for="jabatan" class="form-label">Jabatan:</label>
-                                    <select class="form-control" name="jabatan" id="jabatan" required>
-                                        <option value="">-- Pilih Jabatan --</option>
-                                        <option value="Admin">Admin</option>
-                                        <option value="Kasir">Kasir</option>
-                                        <option value="Owner">Owner</option>
+                                    <label for="jabatan" class="form-label">Jabatan</label>
+                                    <select class="form-select" name="jabatan" id="jabatan" required>
+                                        <option value="" disabled selected>-- Pilih Jabatan --</option>
+                                        <option value="kasir">Kasir</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="owner">Owner</option>
                                     </select>
                                 </div>
-
-
-                                <!-- telepon -->
                                 <div class="mb-3">
-                                    <label for="no_tlp" class="form-label">No. Telepon :</label>
+                                    <label for="no_tlp" class="form-label">No. Telepon</label>
                                     <input type="text" class="form-control" name="no_tlp" id="no_tlp" required />
                                 </div>
-
-                                <!-- email -->
                                 <div class="mb-3">
-                                    <label for="email" class="form-label">Email :</label>
+                                    <label for="email" class="form-label">Email</label>
                                     <input type="email" class="form-control" name="email" id="email" required />
                                 </div>
-
-                                <!-- pass -->
                                 <div class="mb-3">
-                                    <label for="password" class="form-label">Password :</label>
+                                    <label for="password" class="form-label">Password</label>
                                     <input type="password" class="form-control" name="password" id="password" required />
                                 </div>
-
-
-                                <!-- submit -->
-                                <div class="mb-3">
-                                    <button type="submit" class="btn btn-success">Simpan</button>
-                                </div>
+                                <button type="submit" class="btn btn-primary">Simpan Karyawan</button>
+                                <a href="data_karyawan.php" class="btn btn-secondary">Batal</a>
                             </form>
                         </div>
                     </div>
-                    <div class="row">
-
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <i class="fas fa-table me-1"></i>
-                                Data Karyawan
-                            </div>
-                            <div class="card-body">
-                                <table id="data_menu" class="table table-striped table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 80px;">ID Kar</th>
-                                            <th>Nama</th>
-                                            <th>Jabatan</th>
-                                            <th>No. Telepon</th>
-                                            <th>Email</th>
-                                            <th>Password</th>
-                                            <th style="width: 80px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        include '../../../koneksi.php';
-                                        $query_mysql = mysqli_query($koneksi, "SELECT * FROM karyawan");
-                                        $nomor = 1;
-                                        while ($data = mysqli_fetch_array($query_mysql)) {
-                                        ?>
-                                            <tr>
-                                                <td><?php echo $nomor++; ?></td>
-                                                <td><?php echo $data['username']; ?></td>
-                                                <td><?php echo $data['jabatan']; ?></td>
-                                                <td><?php echo $data['no_tlp']; ?></td>
-                                                <td><?php echo $data['email']; ?></td>
-                                                <td><?php echo $data['password']; ?></td>
-                                                <td>
-                                                    <div class="d-flex gap-2">
-                                                        <a class="btn btn-primary btn-sm" href="kar_edit.php?id_karyawan=<?php echo $data['id_karyawan']; ?>">Edit</a>
-                                                        <a class="btn btn-danger btn-sm" href="kar_hapus.php?id_karyawan=<?php echo $data['id_karyawan']; ?>">Hapus</a>
-                                                    </div>
-                                                </td>
-
-                                            </tr>
-                                        <?php } ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-            </main>
-
-            <footer class="py-4 bg-light mt-auto">
-                <div class="container-fluid px-4">
-                    <div class="d-flex align-items-center justify-content-between small">
-                        <div class="text-muted">Copyright &copy; KueBalok 2025</div>
-                    </div>
                 </div>
-            </footer>
+            </main>
+             <footer class="py-4 bg-light mt-auto">
+                </footer>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
-        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="../../../js/scripts.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
-    <script src="../../../assets/demo/chart-area-demo.js"></script>
-    <script src="../../../assets/demo/chart-bar-demo.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js"
-        crossorigin="anonymous"></script>
-    <script src="../../../js/datatables-simple-demo.js"></script>
 </body>
-
 </html>

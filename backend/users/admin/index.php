@@ -32,17 +32,69 @@ $total_menu_nonaktif = mysqli_fetch_assoc($result_total_nonaktif)['total'] ?? 0;
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="utf-8" />
     <title>Dashboard - Admin</title>
     <link href="../../css/styles.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link rel="icon" type="image/png" href="../../assets/img/logo-kuebalok.png"> 
+
 </head>
+
 <body class="sb-nav-fixed">
-    <?php include 'inc/navbar.php'; ?>
+    <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <a class="navbar-brand ps-3" href="index.php">KueBalok</a>
+
+        <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user fa-fw"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+
+                    <li>
+                        <h6 class="dropdown-header">
+                            Login sebagai:<br>
+                            <strong><?php echo isset($_SESSION['user']['nama']) ? htmlspecialchars($_SESSION['user']['nama']) : 'Pengguna'; ?></strong><br>
+                            <small class="text-muted"><?php echo isset($_SESSION['user']['jabatan']) ? ucfirst(htmlspecialchars($_SESSION['user']['jabatan'])) : 'Role'; ?></small>
+                        </h6>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider" />
+                    </li>
+                    <li><a class="dropdown-item" href="../../../logout.php">Logout</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
     <div id="layoutSidenav">
         <div id="layoutSidenav_nav">
-            <?php include 'inc/sidebar.php'; ?>
+            <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                <div class="sb-sidenav-menu">
+                    <div class="nav">
+                        <div class="sb-sidenav-menu-heading">Menu Utama</div>
+
+                        <a class="nav-link" href="menu/data_menu.php">
+                            <div class="sb-nav-link-icon"><i class="fas fa-utensils"></i></div>
+                            Manajemen Menu
+                        </a>
+                        <a class="nav-link" href="stok/manajemen_stok.php">
+                            <div class="sb-nav-link-icon"><i class="fas fa-boxes"></i></div>
+                            Manajemen Stok
+                        </a>
+                    </div>
+                </div>
+                <div class="sb-sidenav-footer">
+                    <div class="small">Panel Role:</div>
+                    <strong><?php echo isset($_SESSION['user']['jabatan']) ? ucfirst(htmlspecialchars($_SESSION['user']['jabatan'])) : ''; ?></strong>
+                </div>
+            </nav>
         </div>
         <div id="layoutSidenav_content">
             <main>
@@ -63,7 +115,7 @@ $total_menu_nonaktif = mysqli_fetch_assoc($result_total_nonaktif)['total'] ?? 0;
                                     </div>
                                 </div>
                                 <div class="card-footer d-flex align-items-center justify-content-between">
-                                    <a class="small text-white stretched-link" href="data_menu.php">Kelola Sekarang</a>
+                                    <a class="small text-white stretched-link" href="menu/data_menu.php">Kelola Sekarang</a>
                                     <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                                 </div>
                             </div>
@@ -78,7 +130,7 @@ $total_menu_nonaktif = mysqli_fetch_assoc($result_total_nonaktif)['total'] ?? 0;
                                     </div>
                                 </div>
                                 <div class="card-footer d-flex align-items-center justify-content-between">
-                                    <a class="small text-white stretched-link" href="manajemen_stok.php">Kelola Sekarang</a>
+                                    <a class="small text-white stretched-link" href="stok/manajemen_stok.php">Kelola Sekarang</a>
                                     <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                                 </div>
                             </div>
@@ -132,9 +184,10 @@ $total_menu_nonaktif = mysqli_fetch_assoc($result_total_nonaktif)['total'] ?? 0;
 
                 </div>
             </main>
-            </div>
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="../../js/scripts.js"></script>
 </body>
+
 </html>
