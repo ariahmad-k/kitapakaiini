@@ -9,12 +9,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $gambar = $_FILES['gambar']['name'];
     $tmp = $_FILES['gambar']['tmp_name'];
-    $path = "../../assets/img/" . $gambar;
+    $path = "../../../assets/img/produk" . $gambar;
 
     if (move_uploaded_file($tmp, $path)) {
-        $query = "INSERT INTO produk (id_produk, nama, harga, kategori, gambar) VALUES ('$id_produk', '$nama', '$harga', '$kategori', '$gambar')";
+        $query = "INSERT INTO produk (id_produk, nama_produk, harga_produk, kategori, poto_produk) VALUES ('$id_produk', '$nama', '$harga', '$kategori', '$gambar')";
         mysqli_query($koneksi, $query);
-        header("Location: list_menu.php");
+        header("Location: data_menu.php");
     } else {
         echo "Gagal mengupload gambar.";
     }

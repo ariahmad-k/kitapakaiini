@@ -106,7 +106,7 @@ if (isset($_GET['tanggal'])) {
                                                 <td><?= $row['nama'] ?></td>
                                                 <td><?= $row['stok'] ?></td>
                                                 <td>
-                                                    <a href="edit_stock.php?id=<?= $row['id'] ?>">Edit</a>
+                                                    <a href="stock_edit.php?id=<?= $row['id'] ?>">Edit</a>
                                                     <a href="stock_hapus.php?id=<?= $row['id'] ?>" onclick="return confirm('Hapus stok?')">Hapus</a>
                                                 </td>
                                             </tr>
