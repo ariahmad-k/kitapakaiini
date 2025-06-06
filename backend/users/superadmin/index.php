@@ -65,11 +65,11 @@
                         <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne"
                             data-bs-parent="#sidenavAccordion">
                             <nav class="sb-sidenav-menu-nested nav">
-                                <a class="nav-link" href="layout-static.html">Pemasukan</a>
+                                <a class="nav-link" href="laporan/laporan_penjualan.php">Pemasukan</a>
                                 <a class="nav-link" href="layout-sidenav-light.html">Menu</a>
                             </nav>
                         </div>
-                        <a class="nav-link" href="index.html">
+                        <a class="nav-link" href="ulasan/tinjau_feedback.php">
                             <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                             Umpan Balik Pelanggan
                         </a>

@@ -1,28 +1,26 @@
 <?php
+// Memastikan sesi dimulai dengan aman (jika file ini di-include terpisah)
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 ?>
-
 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
     <div class="sb-sidenav-menu">
         <div class="nav">
-            <div class="sb-sidenav-menu-heading"></div>
+            <div class="sb-sidenav-menu-heading">Menu Utama</div>
+            
             <a class="nav-link" href="../menu/data_menu.php">
-                <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                Data Menu
+                <div class="sb-nav-link-icon"><i class="fas fa-utensils"></i></div>
+                Manajemen Menu
             </a>
-            <a class="nav-link" href="../stok/data_stock.php">
-                <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                Stok Harian
+            <a class="nav-link" href="../stok/manajemen_stok.php">
+                <div class="sb-nav-link-icon"><i class="fas fa-boxes"></i></div>
+                Manajemen Stok
             </a>
-           
-        </div>
+            </div>
     </div>
     <div class="sb-sidenav-footer">
-        <div class="small">Admin:</div>
-           <?php 
-            echo isset($_SESSION['user']['name']) ? $_SESSION['user']['name'] : 'Unknown';
-        ?>
+        <div class="small">Panel Role:</div>
+        <strong><?php echo isset($_SESSION['user']['jabatan']) ? ucfirst(htmlspecialchars($_SESSION['user']['jabatan'])) : ''; ?></strong>
     </div>
 </nav>

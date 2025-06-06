@@ -8,6 +8,7 @@ if (!isset( $_POST['nama'], $_POST['jabatan'], $_POST['no_tlp'], $_POST['email']
 
 // validasi sederhana 
 // $id_karyawan = $_POST['id_karyawan'];
+$username = $_POST['username'] ?? ''; // Username bisa kosong jika tidak diperlukan
 $nama = $_POST['nama'];
 $jabatan = $_POST['jabatan'];
 $no_tlp = $_POST['no_tlp'];
@@ -20,14 +21,14 @@ if ( $nama === ''|| $jabatan === '' ||$no_tlp === ''|| $email === '' || $passwor
 }
 
 // Gunakan prepared statement
-$stmt = $koneksi->prepare("INSERT INTO karyawan (username, jabatan, no_tlp, email, password) VALUES (?, ?, ?, ?, ?)");
+$stmt = $koneksi->prepare("INSERT INTO karyawan (nama, username, jabatan, no_tlp, email, password) VALUES (?,?, ?, ?, ?, ?)");
 
 if (!$stmt) {
     die("Prepare failed: (" . $koneksi->errno . ") " . $koneksi->error);
 }
 
 // id_karyawan, nama, jabatan, no_tlp, alamat, jenis_kelamin email
-$stmt->bind_param("sssss", $nama, $jabatan, $no_tlp, $email, $password);
+$stmt->bind_param("ssssss", $nama, $username, $jabatan, $no_tlp, $email, $password);
 
 
 if ($stmt->execute()) {
