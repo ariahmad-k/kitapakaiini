@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
     // 5. KEAMANAN: Gunakan Prepared Statement untuk INSERT data
-    $query = "INSERT INTO karyawan (nama, username, password, jabatan, no_tlp, email) VALUES (?, ?, ?, ?, ?, ?)";
+    $query = "INSERT INTO karyawan (nama, username, password, jabatan, no_telepon, email) VALUES (?, ?, ?, ?, ?, ?)";
     $stmt = mysqli_prepare($koneksi, $query);
     mysqli_stmt_bind_param($stmt, "ssssss", $nama, $username, $hashed_password, $jabatan, $no_tlp, $email);
 

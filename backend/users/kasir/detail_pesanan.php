@@ -21,13 +21,13 @@ $sql_header = "SELECT
                     pk.id_pesanan, 
                     pk.nama_pemesan, 
                     pk.tgl_pesanan, 
-                    pk.total_hargaall, 
+                    pk.total_harga, 
                     pk.metode_pembayaran,
                     pk.jenis_pesanan,
                     pk.catatan,
                     k.nama AS nama_kasir
                 FROM 
-                    pesanan_kasir pk
+                    pesanan pk
                 JOIN 
                     karyawan k ON pk.id_karyawan = k.id_karyawan
                 WHERE 
@@ -46,7 +46,7 @@ if (!$pesanan) {
 // 4. AMBIL DATA ITEM-ITEM PESANAN
 $sql_detail = "SELECT
                     dp.jumlah,
-                    dp.harga_produk AS harga_saat_transaksi,
+                    dp.harga_saat_transaksi AS harga_saat_transaksi,
                     dp.sub_total,
                     p.nama_produk
                 FROM
@@ -105,29 +105,8 @@ while ($row = mysqli_fetch_assoc($result_detail)) {
     <div id="layoutSidenav">
         <div id="layoutSidenav_nav">
             <?php
-            if (session_status() == PHP_SESSION_NONE) {
-                session_start();
-            }
+            include 'inc/sidebar.php';
             ?>
-
-            <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
-                <div class="sb-sidenav-menu">
-                    <div class="nav">
-                        <div class="sb-sidenav-menu-heading"></div>
-                        <a class="nav-link" href="input/input_pesanan.php">
-                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                            Input Pesanan
-                        </a>
-                        <a class="nav-link" href="#">
-                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                            Pesanan Masuk
-                        </a>
-                        <a class="nav-link" href="riwayat/data_riwayat.php">
-                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                            Riwayat Pesanan
-                        </a>
-                    </div>
-                </div>
                 <div class="sb-sidenav-footer">
                     <div class="small">Kasir :</div>
                     <?php
@@ -142,7 +121,7 @@ while ($row = mysqli_fetch_assoc($result_detail)) {
                     <h1 class="mt-4">Detail Pesanan</h1>
                     <ol class="breadcrumb mb-4 no-print">
                         <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="riwayat/riwayat_pesanan.php">Riwayat Pesanan</a></li>
+                        <li class="breadcrumb-item"><a href="pesanan_data_riwayat.php">Riwayat Pesanan</a></li>
                         <li class="breadcrumb-item active">Detail</li>
                     </ol>
 
@@ -200,7 +179,7 @@ while ($row = mysqli_fetch_assoc($result_detail)) {
                                         <tfoot>
                                             <tr class="table-light">
                                                 <th colspan="3" class="text-end"><strong>Total Keseluruhan</strong></th>
-                                                <th class="text-end"><strong>Rp <?php echo number_format($pesanan['total_hargaall'], 0, ',', '.'); ?></strong></th>
+                                                <th class="text-end"><strong>Rp <?php echo number_format($pesanan['total_harga'], 0, ',', '.'); ?></strong></th>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -210,7 +189,7 @@ while ($row = mysqli_fetch_assoc($result_detail)) {
                     </div>
 
                     <div class="mt-4 text-center no-print">
-                        <a href="riwayat/data_riwayat.php" class="btn btn-secondary">
+                        <a href="pesanan_data_riwayat.php" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali ke Riwayat
                         </a>
                         <button onclick="printInvoice()" class="btn btn-primary">

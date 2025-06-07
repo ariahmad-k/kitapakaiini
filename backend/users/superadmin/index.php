@@ -12,13 +12,13 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['jabatan'] !== 'owner') {
 $today = date('Y-m-d');
 
 // Pendapatan Hari Ini
-$stmt_pendapatan = mysqli_prepare($koneksi, "SELECT SUM(total_hargaall) AS total FROM pesanan_kasir WHERE DATE(tgl_pesanan) = ?");
+$stmt_pendapatan = mysqli_prepare($koneksi, "SELECT SUM(total_harga) AS total FROM pesanan WHERE DATE(tgl_pesanan) = ?");
 mysqli_stmt_bind_param($stmt_pendapatan, "s", $today);
 mysqli_stmt_execute($stmt_pendapatan);
 $pendapatan_hari_ini = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_pendapatan))['total'] ?? 0;
 
 // Transaksi Hari Ini
-$stmt_transaksi = mysqli_prepare($koneksi, "SELECT COUNT(id_pesanan) AS jumlah FROM pesanan_kasir WHERE DATE(tgl_pesanan) = ?");
+$stmt_transaksi = mysqli_prepare($koneksi, "SELECT COUNT(id_pesanan) AS jumlah FROM pesanan WHERE DATE(tgl_pesanan) = ?");
 mysqli_stmt_bind_param($stmt_transaksi, "s", $today);
 mysqli_stmt_execute($stmt_transaksi);
 $transaksi_hari_ini = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_transaksi))['jumlah'] ?? 0;
@@ -29,8 +29,8 @@ $pesanan_online_baru = 0; // Ganti dengan query jika sudah ada fiturnya
 
 
 // === DATA UNTUK GRAFIK PENJUALAN 7 HARI TERAKHIR ===
-$sql_chart = "SELECT DATE(tgl_pesanan) as tanggal, SUM(total_hargaall) as total 
-              FROM pesanan_kasir 
+$sql_chart = "SELECT DATE(tgl_pesanan) as tanggal, SUM(total_harga) as total 
+              FROM pesanan
               WHERE DATE(tgl_pesanan) >= CURDATE() - INTERVAL 6 DAY 
               GROUP BY DATE(tgl_pesanan) 
               ORDER BY tanggal ASC";
@@ -55,7 +55,7 @@ for ($i = 6; $i >= 0; $i--) {
 $sql_top_produk = "SELECT p.nama_produk, SUM(dp.jumlah) AS total_terjual 
                    FROM detail_pesanan dp
                    JOIN produk p ON dp.id_produk = p.id_produk
-                   JOIN pesanan_kasir pk ON dp.id_pesanan = pk.id_pesanan
+                   JOIN pesanan pk ON dp.id_pesanan = pk.id_pesanan
                    WHERE MONTH(pk.tgl_pesanan) = MONTH(CURDATE()) AND YEAR(pk.tgl_pesanan) = YEAR(CURDATE())
                    GROUP BY p.id_produk, p.nama_produk
                    ORDER BY total_terjual DESC LIMIT 5";

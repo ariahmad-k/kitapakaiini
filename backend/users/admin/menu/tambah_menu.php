@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
     // Pindahkan file gambar terlebih dahulu
     if (move_uploaded_file($tmp, $path)) {
         // Gunakan Prepared Statement untuk keamanan
-        $query = "INSERT INTO produk (id_produk, nama_produk, harga_produk, kategori, poto_produk) VALUES (?, ?, ?, ?, ?)";
+        $query = "INSERT INTO produk (id_produk, nama_produk, harga, kategori, poto_produk) VALUES (?, ?, ?, ?, ?)";
         $stmt = mysqli_prepare($koneksi, $query);
         mysqli_stmt_bind_param($stmt, "ssdss", $id_produk, $nama, $harga, $kategori, $gambar);
         

@@ -9,13 +9,12 @@ if (!isset($_SESSION['user']) || !in_array($_SESSION['user']['jabatan'], ['admin
 }
 
 // 2. LOGIKA PROSES UPDATE STOK DARI MODAL
+// GANTI SELURUH BLOK INI DI FILE ANDA
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_stok'])) {
     $id_produk = $_POST['id_produk'];
     $stok_baru = (int)$_POST['jumlah_stok_baru'];
     $tanggal_hari_ini = date('Y-m-d');
 
-    // Mulai Database Transaction -> ini PENTING!
-    // Memastikan kedua query (update produk & update stok harian) berhasil atau keduanya gagal.
     mysqli_begin_transaction($koneksi);
 
     try {
@@ -25,7 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_stok'])) {
         mysqli_stmt_execute($stmt1);
 
         // Query 2: Cek apakah sudah ada entri stok untuk produk ini hari ini
-        $stmt_check = mysqli_prepare($koneksi, "SELECT id FROM stok_harian WHERE id_produk = ? AND tanggal = ?");
+        // PERBAIKAN: Menggunakan nama kolom yang benar 'id_stok_harian'
+        $stmt_check = mysqli_prepare($koneksi, "SELECT id_stok_harian FROM stok_harian WHERE id_produk = ? AND tanggal = ?");
         mysqli_stmt_bind_param($stmt_check, "ss", $id_produk, $tanggal_hari_ini);
         mysqli_stmt_execute($stmt_check);
         $result_check = mysqli_stmt_get_result($stmt_check);
@@ -48,7 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_stok'])) {
     } catch (Exception $e) {
         // Jika ada satu saja yang gagal, batalkan semua perubahan
         mysqli_rollback($koneksi);
-        $_SESSION['notif'] = ['pesan' => 'Gagal memperbarui stok. Terjadi error.', 'tipe' => 'danger'];
+        // PERBAIKAN: Menampilkan pesan error yang lebih detail
+        $_SESSION['notif'] = ['pesan' => 'Gagal memperbarui stok. Error: ' . $e->getMessage(), 'tipe' => 'danger'];
     }
 
     header('Location: manajemen_stok.php');

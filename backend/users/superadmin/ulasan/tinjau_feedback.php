@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_feedback'])) {
 
 // 3. LOGIKA PENGAMBILAN DATA
 // Ambil semua data dari tabel feedback, urutkan dari yang paling baru
-$sql = "SELECT id, nama, email, pesan, tanggal FROM feedback ORDER BY tanggal DESC";
+$sql = "SELECT id_feedback, nama, email, pesan, tanggal FROM feedback ORDER BY tanggal DESC";
 $result = mysqli_query($koneksi, $sql);
 
 $feedbacks = [];

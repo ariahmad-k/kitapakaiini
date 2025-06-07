@@ -86,7 +86,7 @@ $query_mysql = mysqli_query($koneksi, "SELECT * FROM karyawan ORDER BY nama ASC"
                                             <td><?= htmlspecialchars($data['nama']); ?></td>
                                             <td><?= htmlspecialchars($data['username']); ?></td>
                                             <td><?= htmlspecialchars(ucfirst($data['jabatan'])); ?></td>
-                                            <td><?= htmlspecialchars($data['no_tlp']); ?></td>
+                                            <td><?= htmlspecialchars($data['no_telepon']); ?></td>
                                             <td><?= htmlspecialchars($data['email']); ?></td>
                                             <td>
                                                 <div class="d-flex gap-2">

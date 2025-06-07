@@ -1,11 +1,11 @@
 <?php
 session_start();
-include '../../../koneksi.php'; // Path disesuaikan dari users/kasir/
+include '../../koneksi.php'; // Path disesuaikan dari users/kasir/
 
 // 1. OTENTIKASI & OTORISASI
 // Pastikan user sudah login dan merupakan seorang kasir.
 if (!isset($_SESSION['user']) || $_SESSION['user']['jabatan'] !== 'kasir') {
-    header('Location: ../../../login.php');
+    header('Location: ../../login.php');
     exit;
 }
 
@@ -23,11 +23,11 @@ $sql = "SELECT
             pk.id_pesanan, 
             pk.nama_pemesan, 
             pk.tgl_pesanan, 
-            pk.total_hargaall, 
+            pk.total_harga, 
             pk.metode_pembayaran,
             k.nama AS nama_kasir
         FROM 
-            pesanan_kasir pk
+            pesanan pk
         JOIN 
             karyawan k ON pk.id_karyawan = k.id_karyawan
         WHERE 
@@ -56,22 +56,22 @@ if ($result) {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>Riwayat Pesanan - Kasir</title>
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
-    <link href="../../../css/styles.css" rel="stylesheet" />
+    <link href="../../css/styles.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 </head>
 
 <body class="sb-nav-fixed">
-    <?php include '../inc/navbar.php'; ?>
+    <?php include 'inc/navbar.php'; ?>
     <div id="layoutSidenav">
         <div id="layoutSidenav_nav">
-            <?php include '../inc/sidebar.php'; ?>
+            <?php include 'inc/sidebar.php'; ?>
         </div>
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
                     <h1 class="mt-4">Riwayat Pesanan</h1>
                     <ol class="breadcrumb mb-4">
-                        <li class="breadcrumb-item"><a href="../index.php">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
                         <li class="breadcrumb-item active">Riwayat Pesanan</li>
                     </ol>
 
@@ -118,11 +118,11 @@ if ($result) {
                                                 <td><?php echo htmlspecialchars($pesanan['id_pesanan']); ?></td>
                                                 <td><?php echo date('H:i:s', strtotime($pesanan['tgl_pesanan'])); ?></td>
                                                 <td><?php echo htmlspecialchars($pesanan['nama_pemesan']); ?></td>
-                                                <td>Rp <?php echo number_format($pesanan['total_hargaall'], 0, ',', '.'); ?></td>
+                                                <td>Rp <?php echo number_format($pesanan['total_harga'], 0, ',', '.'); ?></td>
                                                 <td><?php echo htmlspecialchars(ucfirst($pesanan['metode_pembayaran'])); ?></td>
                                                 <td><?php echo htmlspecialchars($pesanan['nama_kasir']); ?></td>
                                                 <td>
-                                                    <a href="../detail_pesanan.php?id=<?php echo $pesanan['id_pesanan']; ?>" class="btn btn-info btn-sm">
+                                                    <a href="detail_pesanan.php?id=<?php echo $pesanan['id_pesanan']; ?>" class="btn btn-info btn-sm">
                                                         <i class="fas fa-search"></i> Detail
                                                     </a>
                                                 </td>

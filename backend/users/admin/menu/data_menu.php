@@ -81,7 +81,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM produk ORDER BY kategori, nama_p
                                             <td><?= htmlspecialchars($row['nama_produk']) ?></td>
                                             <td>Rp <?= number_format($row['harga']) ?></td>
                                             <td><?= htmlspecialchars(ucfirst($row['kategori'])) ?></td>
-                                            <td><img src="../../../assets/img/produk/<?= htmlspecialchars($row['foto_produk']) ?>" width="100" alt="<?= htmlspecialchars($row['nama_produk']) ?>"></td>
+                                            <td><img src="../../../assets/img/produk/<?= htmlspecialchars($row['poto_produk']) ?>" width="100" alt="<?= htmlspecialchars($row['nama_produk']) ?>"></td>
                                             <td>
                                                 <a href="menu_edit.php?id_produk=<?= $row['id_produk'] ?>" class="btn btn-warning btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
                                                 <a href="menu_hapus.php?id_produk=<?= $row['id_produk'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Anda yakin ingin menghapus produk ini?')" title="Hapus"><i class="fas fa-trash"></i></a>

@@ -21,23 +21,23 @@ $judul_halaman = "Laporan Pemasukan";
 if ($jenis_laporan === 'pemasukan') {
     $judul_halaman = "Laporan Pemasukan";
     // Query untuk kartu ringkasan
-    $stmt_pendapatan = mysqli_prepare($koneksi, "SELECT SUM(total_hargaall) AS total FROM pesanan_kasir WHERE DATE(tgl_pesanan) BETWEEN ? AND ?");
+    $stmt_pendapatan = mysqli_prepare($koneksi, "SELECT SUM(total_harga) AS total FROM pesanan WHERE DATE(tgl_pesanan) BETWEEN ? AND ?");
     mysqli_stmt_bind_param($stmt_pendapatan, "ss", $tanggal_mulai, $tanggal_selesai);
     mysqli_stmt_execute($stmt_pendapatan);
     $total_pendapatan = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_pendapatan))['total'] ?? 0;
 
-    $stmt_transaksi = mysqli_prepare($koneksi, "SELECT COUNT(id_pesanan) AS jumlah FROM pesanan_kasir WHERE DATE(tgl_pesanan) BETWEEN ? AND ?");
+    $stmt_transaksi = mysqli_prepare($koneksi, "SELECT COUNT(id_pesanan) AS jumlah FROM pesanan WHERE DATE(tgl_pesanan) BETWEEN ? AND ?");
     mysqli_stmt_bind_param($stmt_transaksi, "ss", $tanggal_mulai, $tanggal_selesai);
     mysqli_stmt_execute($stmt_transaksi);
     $jumlah_transaksi = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_transaksi))['jumlah'] ?? 0;
 
-    $stmt_item = mysqli_prepare($koneksi, "SELECT SUM(dp.jumlah) AS total FROM detail_pesanan dp JOIN pesanan_kasir pk ON dp.id_pesanan = pk.id_pesanan WHERE DATE(pk.tgl_pesanan) BETWEEN ? AND ?");
+    $stmt_item = mysqli_prepare($koneksi, "SELECT SUM(dp.jumlah) AS total FROM detail_pesanan dp JOIN pesanan pk ON dp.id_pesanan = pk.id_pesanan WHERE DATE(pk.tgl_pesanan) BETWEEN ? AND ?");
     mysqli_stmt_bind_param($stmt_item, "ss", $tanggal_mulai, $tanggal_selesai);
     mysqli_stmt_execute($stmt_item);
     $total_item_terjual = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_item))['total'] ?? 0;
 
     // Query untuk tabel rincian
-    $sql_rincian = "SELECT pk.id_pesanan, pk.tgl_pesanan, pk.total_hargaall, k.nama AS nama_kasir FROM pesanan_kasir pk JOIN karyawan k ON pk.id_karyawan = k.id_karyawan WHERE DATE(pk.tgl_pesanan) BETWEEN ? AND ? ORDER BY pk.tgl_pesanan DESC";
+    $sql_rincian = "SELECT pk.id_pesanan, pk.tgl_pesanan, pk.total_harga, k.nama AS nama_kasir FROM pesanan pk JOIN karyawan k ON pk.id_karyawan = k.id_karyawan WHERE DATE(pk.tgl_pesanan) BETWEEN ? AND ? ORDER BY pk.tgl_pesanan DESC";
     $stmt_rincian = mysqli_prepare($koneksi, $sql_rincian);
     mysqli_stmt_bind_param($stmt_rincian, "ss", $tanggal_mulai, $tanggal_selesai);
     mysqli_stmt_execute($stmt_rincian);
@@ -48,7 +48,7 @@ if ($jenis_laporan === 'pemasukan') {
     }
 } elseif ($jenis_laporan === 'produk') {
     $judul_halaman = "Laporan Analisis Produk";
-    $base_sql = "SELECT p.nama_produk, SUM(dp.jumlah) AS total_terjual FROM detail_pesanan dp JOIN produk p ON dp.id_produk = p.id_produk JOIN pesanan_kasir pk ON dp.id_pesanan = pk.id_pesanan WHERE DATE(pk.tgl_pesanan) BETWEEN ? AND ? GROUP BY p.id_produk, p.nama_produk";
+    $base_sql = "SELECT p.nama_produk, SUM(dp.jumlah) AS total_terjual FROM detail_pesanan dp JOIN produk p ON dp.id_produk = p.id_produk JOIN pesanan pk ON dp.id_pesanan = pk.id_pesanan WHERE DATE(pk.tgl_pesanan) BETWEEN ? AND ? GROUP BY p.id_produk, p.nama_produk";
 
     $stmt_terlaris = mysqli_prepare($koneksi, $base_sql . " ORDER BY total_terjual DESC LIMIT 10");
     mysqli_stmt_bind_param($stmt_terlaris, "ss", $tanggal_mulai, $tanggal_selesai);
@@ -61,7 +61,7 @@ if ($jenis_laporan === 'pemasukan') {
     $produk_kurang_laku = mysqli_fetch_all(mysqli_stmt_get_result($stmt_kurang_laku), MYSQLI_ASSOC);
 } elseif ($jenis_laporan === 'jam_sibuk') {
     $judul_halaman = "Analisis Jam Sibuk";
-    $sql_jam = "SELECT HOUR(tgl_pesanan) as jam, COUNT(id_pesanan) as jumlah_transaksi FROM pesanan_kasir WHERE DATE(tgl_pesanan) BETWEEN ? AND ? GROUP BY jam ORDER BY jam ASC";
+    $sql_jam = "SELECT HOUR(tgl_pesanan) as jam, COUNT(id_pesanan) as jumlah_transaksi FROM pesanan WHERE DATE(tgl_pesanan) BETWEEN ? AND ? GROUP BY jam ORDER BY jam ASC";
     $stmt_jam = mysqli_prepare($koneksi, $sql_jam);
     mysqli_stmt_bind_param($stmt_jam, "ss", $tanggal_mulai, $tanggal_selesai);
     mysqli_stmt_execute($stmt_jam);
@@ -80,14 +80,14 @@ if ($jenis_laporan === 'pemasukan') {
 } elseif ($jenis_laporan === 'kategori_pembayaran') {
     $judul_halaman = "Analisis Kategori & Pembayaran";
     // Query Kategori
-    $sql_kategori = "SELECT p.kategori, SUM(dp.sub_total) as total_pendapatan FROM detail_pesanan dp JOIN produk p ON dp.id_produk = p.id_produk JOIN pesanan_kasir pk ON dp.id_pesanan = pk.id_pesanan WHERE DATE(pk.tgl_pesanan) BETWEEN ? AND ? GROUP BY p.kategori";
+    $sql_kategori = "SELECT p.kategori, SUM(dp.sub_total) as total_pendapatan FROM detail_pesanan dp JOIN produk p ON dp.id_produk = p.id_produk JOIN pesanan pk ON dp.id_pesanan = pk.id_pesanan WHERE DATE(pk.tgl_pesanan) BETWEEN ? AND ? GROUP BY p.kategori";
     $stmt_kategori = mysqli_prepare($koneksi, $sql_kategori);
     mysqli_stmt_bind_param($stmt_kategori, "ss", $tanggal_mulai, $tanggal_selesai);
     mysqli_stmt_execute($stmt_kategori);
     $data_kategori = mysqli_fetch_all(mysqli_stmt_get_result($stmt_kategori), MYSQLI_ASSOC);
 
     // Query Metode Pembayaran
-    $sql_pembayaran = "SELECT metode_pembayaran, COUNT(id_pesanan) as jumlah_penggunaan FROM pesanan_kasir WHERE DATE(tgl_pesanan) BETWEEN ? AND ? GROUP BY metode_pembayaran";
+    $sql_pembayaran = "SELECT metode_pembayaran, COUNT(id_pesanan) as jumlah_penggunaan FROM pesanan WHERE DATE(tgl_pesanan) BETWEEN ? AND ? GROUP BY metode_pembayaran";
     $stmt_pembayaran = mysqli_prepare($koneksi, $sql_pembayaran);
     mysqli_stmt_bind_param($stmt_pembayaran, "ss", $tanggal_mulai, $tanggal_selesai);
     mysqli_stmt_execute($stmt_pembayaran);
@@ -202,7 +202,7 @@ if ($jenis_laporan === 'pemasukan') {
                                                 <td><?php echo date('d/m/Y', strtotime($transaksi['tgl_pesanan'])); ?></td>
                                                 <td><?php echo date('H:i:s', strtotime($transaksi['tgl_pesanan'])); ?></td>
                                                 <td><?php echo htmlspecialchars($transaksi['id_pesanan']); ?></td>
-                                                <td>Rp <?php echo number_format($transaksi['total_hargaall'], 0, ',', '.'); ?></td>
+                                                <td>Rp <?php echo number_format($transaksi['total_harga'], 0, ',', '.'); ?></td>
                                                 <td><?php echo htmlspecialchars($transaksi['nama_kasir']); ?></td>
                                                 <td>
                                                     <a href="../kasir/detail_pesanan.php?id=<?php echo $transaksi['id_pesanan']; ?>" class="btn btn-sm btn-info" target="_blank">Detail</a>
