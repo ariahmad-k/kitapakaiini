@@ -61,7 +61,7 @@ if (isset($_POST['submit'])) {
     }
 
     // Siapkan query UPDATE dengan prepared statement
-    $query_update = "UPDATE produk SET nama_produk=?, harga=?, kategori=?, foto_produk=? WHERE id_produk=?";
+    $query_update = "UPDATE produk SET nama_produk=?, harga=?, kategori=?, poto_produk=? WHERE id_produk=?";
     $stmt_update = mysqli_prepare($koneksi, $query_update);
     mysqli_stmt_bind_param($stmt_update, "sdsss", $nama_produk, $harga, $kategori, $gambar_untuk_db, $id_produk_update);
 
@@ -129,7 +129,7 @@ if (isset($_POST['submit'])) {
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Gambar Saat Ini:</label><br>
-                                    <img src="../../../assets/img/produk/<?= htmlspecialchars($data['foto_produk']) ?>" width="150" alt="Gambar saat ini" class="img-thumbnail">
+                                    <img src="../../../assets/img/produk/<?= htmlspecialchars($data['poto_produk']) ?>" width="150" alt="Gambar saat ini" class="img-thumbnail">
                                 </div>
                                 <div class="mb-3">
                                     <label for="gambar" class="form-label">Upload Gambar Baru (Kosongkan jika tidak ingin diubah)</label>

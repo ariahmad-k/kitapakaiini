@@ -4,7 +4,7 @@
 $host = "localhost";
 $username = "root";
 $password = "";
-$database = "asu";
+$database = "1";
 
 
 // isi nama host, username mysql, dan password mysql anda
