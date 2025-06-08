@@ -10,7 +10,7 @@ $page_title = "Menu Lengkap";
 include 'includes/header.php';
 
 // 3. Panggil koneksi database
-include 'includes/koneksi.php';
+// include 'includes/koneksi.php';
 
 // 4. Ambil semua data produk yang aktif dari database
 $sql_produk = "SELECT id_produk, nama_produk, harga, poto_produk, kategori

@@ -1,7 +1,7 @@
 <?php
 $page_title = "Beranda - Kue Mang Wiro";
 
-include 'includes/koneksi.php'; // Pastikan koneksi database sudah benar
+// include '../backend/koneksi.php'; // Pastikan koneksi database sudah benar
 include 'includes/header.php';
 
 

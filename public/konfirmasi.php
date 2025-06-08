@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'includes/koneksi.php';
+// include 'includes/koneksi.php';
 
 // 1. VALIDASI INPUT ID PESANAN DARI URL
 if (!isset($_GET['id']) || empty($_GET['id'])) {

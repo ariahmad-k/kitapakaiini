@@ -1,6 +1,6 @@
 <?php
 $page_title = "Lacak Pesanan";
-include 'includes/koneksi.php';
+// include 'includes/koneksi.php';
 include 'includes/header.php';
 
 $hasil_lacak = null;
