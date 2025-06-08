@@ -9,32 +9,37 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['jabatan'] !== 'kasir') {
 }
 
 // 2. LOGIKA PEMROSESAN FORM (POST REQUEST)
+// GANTI SELURUH BLOK if ($_SERVER...) ANDA DENGAN INI
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $redirect = true;
 
     // --- Aksi: Validasi Pesanan Online ---
     if (isset($_POST['validasi_pesanan'])) {
         $id_pesanan = $_POST['id_pesanan'];
+        // PENTING: Ambil ID kasir yang sedang bertugas dari sesi
+        $id_kasir_yang_validasi = $_SESSION['user']['id'];
+
         mysqli_begin_transaction($koneksi);
         try {
             // Hitung "Beban Dapur"
-            $sql_beban = "SELECT SUM(dp.jumlah) AS total_item_aktif
-                          FROM detail_pesanan dp
-                          JOIN pesanan p ON dp.id_pesanan = p.id_pesanan
-                          WHERE p.status_pesanan IN ('pending', 'diproses')
-                            AND (dp.id_produk LIKE 'KB%' OR dp.id_produk LIKE 'KS%')";
+            $sql_beban = "SELECT SUM(dp.jumlah) AS total_item_aktif FROM detail_pesanan dp JOIN pesanan p ON dp.id_pesanan = p.id_pesanan WHERE p.status_pesanan IN ('pending', 'diproses') AND (dp.id_produk LIKE 'KB%' OR dp.id_produk LIKE 'KS%')";
             $result_beban = mysqli_query($koneksi, $sql_beban);
             $beban_dapur = mysqli_fetch_assoc($result_beban)['total_item_aktif'] ?? 0;
-
-            // Tentukan status baru berdasarkan beban dapur
+            
             $status_baru = ($beban_dapur < 50) ? 'diproses' : 'pending';
 
-            // Update status pesanan
-            $stmt_update = mysqli_prepare($koneksi, "UPDATE pesanan SET status_pesanan = ? WHERE id_pesanan = ?");
-            mysqli_stmt_bind_param($stmt_update, "ss", $status_baru, $id_pesanan);
+            // PERBAIKAN UTAMA: Query UPDATE sekarang juga mengisi id_karyawan
+            $stmt_update = mysqli_prepare($koneksi, "UPDATE pesanan SET status_pesanan = ?, id_karyawan = ? WHERE id_pesanan = ? AND status_pesanan = 'menunggu_konfirmasi'");
+            
+            // PERBAIKAN UTAMA: Sesuaikan bind_param menjadi "sis" (string, integer, string)
+            mysqli_stmt_bind_param($stmt_update, "sis", $status_baru, $id_kasir_yang_validasi, $id_pesanan);
+            
             mysqli_stmt_execute($stmt_update);
 
             mysqli_commit($koneksi);
             $_SESSION['notif'] = ['pesan' => 'Pesanan berhasil divalidasi dan masuk antrean.', 'tipe' => 'success'];
+
         } catch (Exception $e) {
             mysqli_rollback($koneksi);
             $_SESSION['notif'] = ['pesan' => 'Gagal memvalidasi pesanan. Error: ' . $e->getMessage(), 'tipe' => 'danger'];
@@ -47,14 +52,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_selesai = mysqli_prepare($koneksi, "UPDATE pesanan SET status_pesanan = 'selesai' WHERE id_pesanan = ?");
         mysqli_stmt_bind_param($stmt_selesai, "s", $id_pesanan);
         if (mysqli_stmt_execute($stmt_selesai)) {
-            $_SESSION['notif'] = ['pesan' => 'Pesanan telah ditandai selesai.', 'tipe' => 'success'];
+            $_SESSION['notif'] = ['pesan' => "Pesanan #$id_pesanan telah ditandai selesai.", 'tipe' => 'info'];
         } else {
             $_SESSION['notif'] = ['pesan' => 'Gagal menyelesaikan pesanan.', 'tipe' => 'danger'];
         }
     }
 
-    header('Location: pesanan_masuk.php');
-    exit;
+    if ($redirect) {
+        header('Location: pesanan_masuk.php');
+        exit;
+    }
 }
 
 
