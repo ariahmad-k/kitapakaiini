@@ -75,23 +75,7 @@ if ($result) {
                         <li class="breadcrumb-item active">Riwayat Pesanan</li>
                     </ol>
 
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <i class="fas fa-filter me-1"></i>
-                            Pilih Tanggal
-                        </div>
-                        <div class="card-body">
-                            <form action="riwayat_pesanan.php" method="GET" class="row gx-3 gy-2 align-items-center">
-                                <div class="col-sm-4">
-                                    <label class="visually-hidden" for="tanggal">Tanggal</label>
-                                    <input type="date" class="form-control" id="tanggal" name="tanggal" value="<?php echo htmlspecialchars($tanggal_filter); ?>">
-                                </div>
-                                <div class="col-auto">
-                                    <button type="submit" class="btn btn-primary">Tampilkan</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                
 
                     <div class="card mb-4">
                         <div class="card-header">

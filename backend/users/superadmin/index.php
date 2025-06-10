@@ -23,9 +23,11 @@ mysqli_stmt_bind_param($stmt_transaksi, "s", $today);
 mysqli_stmt_execute($stmt_transaksi);
 $transaksi_hari_ini = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_transaksi))['jumlah'] ?? 0;
 
-// Pesanan Online Baru (jika ada tabel 'pesanan' untuk online)
-// Anggap saja kita punya, jika tidak, bisa diberi nilai 0 atau di-comment
-$pesanan_online_baru = 0; // Ganti dengan query jika sudah ada fiturnya
+//
+// Menghitung pesanan yang tipenya 'online' dan statusnya menunggu validasi kasir
+$sql_online = "SELECT COUNT(id_pesanan) as total FROM pesanan WHERE tipe_pesanan = 'online' AND status_pesanan = 'menunggu_konfirmasi'";
+$result_online = mysqli_query($koneksi, $sql_online);
+$pesanan_online_baru = mysqli_fetch_assoc($result_online)['total'] ?? 0;
 
 
 // === DATA UNTUK GRAFIK PENJUALAN 7 HARI TERAKHIR ===
