@@ -109,8 +109,8 @@ body {
 /* Style untuk badge angka di atas ikon keranjang */
 #shopping-cart-button .cart-item-count {
   position: absolute;
-  top: -0.1rem;      /* Sedikit ke atas dari ikon */
-  right: -0.5rem;    /* Sedikit ke kanan dari ikon */
+  top: -0.1rem; /* Sedikit ke atas dari ikon */
+  right: -0.5rem; /* Sedikit ke kanan dari ikon */
   background-color: #dc3545; /* Warna merah untuk perhatian */
   color: white;
   border-radius: 50%;
@@ -154,7 +154,6 @@ body {
   margin-right: 1.5rem;
   color: var(--bg);
 }
-
 
 .shopping-cart.active {
   right: 0;
@@ -269,38 +268,51 @@ body {
   box-shadow: 1px 1px 3px rgba(1, 1, 3, 0.5);
 }
 /* Menu baru Section */
-/*.product-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+.menu-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
 }
-.product-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px;
-  margin: 10px;
-  width: 150px;
-  text-align: center;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-}
-.product-card img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-}*/
 
+.menu-card {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s ease-in-out;
+}
+
+.menu-card:hover {
+  transform: scale(1.02);
+}
+
+.menu-card img {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 0.8rem;
+}
+
+.menu-card h3 {
+  margin: 1rem 0 0.5rem;
+  font-size: 1.4rem;
+}
 /* About Section */
 .about,
 .menu,
 .products,
-.contact {
+.contact,
+.faq {
   padding: 8rem 7% 1.4rem;
 }
 
 .about h2,
 .menu h2,
 .products h2,
-.contact h2 {
+.contact h2,
+.faq h2 {
   text-align: center;
   font-size: 2.6rem;
   margin-bottom: 3rem;
@@ -309,7 +321,7 @@ body {
 .about h2 span,
 .menu h2 span,
 .products h2 span,
-.contact h2 span {
+.contact h2 span .faq h2 span {
   color: var(--primary);
 }
 
@@ -349,11 +361,13 @@ body {
 /* Menu Section */
 .menu h2,
 .products h2,
-.contact h2 {
+.contact h2,
+.faq h2 {
   margin-bottom: 1rem;
 }
 .menu p,
 .products p,
+.faq p,
 .contact p {
   text-align: center;
   max-width: 30rem;
@@ -382,7 +396,55 @@ body {
 .menu .row .menu-card .menu-card-title {
   margin: 1rem auto 0.5rem;
 }
+/* FAQ Section*/
+.faq-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
 
+.faq-card {
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 0.8rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s ease;
+}
+
+.faq-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.faq-card summary {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+}
+
+.faq-card summary::after {
+  content: "+";
+  position: absolute;
+  right: 0;
+  font-size: 1.6rem;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+}
+
+.faq-card details[open] summary::after {
+  content: "-";
+}
+
+.faq-card p {
+  margin-top: 1rem;
+  font-size: 1.4rem;
+  color: #333;
+  line-height: 1.6;
+}
 /* Products Section */
 .products .row {
   display: grid;
@@ -543,7 +605,6 @@ footer .credit p {
 }
 /* Modal Box */
 /* Item Detail */
-
 
 .modal-container {
   position: relative;
@@ -714,8 +775,12 @@ footer .credit p {
   border-radius: 5px;
 }
 
-.cart-table .text-end { text-align: right; }
-.cart-table .text-center { text-align: center; }
+.cart-table .text-end {
+  text-align: right;
+}
+.cart-table .text-center {
+  text-align: center;
+}
 
 /* ============================================== */
 /* == STYLE UNTUK TOMBOL TAMBAH KE KERANJANG == */
@@ -765,246 +830,251 @@ footer .credit p {
 
 /* Box untuk Nomor Pesanan */
 .order-id-box {
-    background-color: #f8f9fa;
-    border: 1px dashed #ccc;
-    padding: 1rem 2rem;
-    border-radius: 0.5rem;
-    display: inline-block; /* Membuat box tidak full-width */
-    letter-spacing: 2px;   /* Memberi jarak antar huruf/angka */
-    font-size: 2.2rem;     /* Ukuran font lebih besar */
-    margin-top: 1rem;
-    margin-bottom: 1.5rem;
+  background-color: #f8f9fa;
+  border: 1px dashed #ccc;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  display: inline-block; /* Membuat box tidak full-width */
+  letter-spacing: 2px; /* Memberi jarak antar huruf/angka */
+  font-size: 2.2rem; /* Ukuran font lebih besar */
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Wadah untuk Form Upload */
 .upload-wrapper {
-    max-width: 500px;
-    margin: 2rem auto;
-    border: 2px dashed var(--primary);
-    padding: 2rem;
-    border-radius: 10px;
+  max-width: 500px;
+  margin: 2rem auto;
+  border: 2px dashed var(--primary);
+  padding: 2rem;
+  border-radius: 10px;
 }
 
 .upload-wrapper h5 {
-    margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Tombol "Choose File" */
 .upload-wrapper .form-control {
-    display: block;
-    width: 100%;
-    padding: 0.75rem 1.25rem;
-    font-size: 1.4rem;
-    font-weight: 400;
-    line-height: 1.5;
-    color: #212529;
-    background-color: #fff;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    margin-bottom: 1rem;
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  font-size: 1.4rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #fff;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
 }
 
 /* Tombol "Kirim Bukti Pembayaran" */
 .upload-wrapper .btn {
-    width: 100%;
-    margin-top: 1rem;
-    background-color: var(--primary);
-    color: white;
-    font-weight: 700;
-    padding: 1rem;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+  width: 100%;
+  margin-top: 1rem;
+  background-color: var(--primary);
+  color: white;
+  font-weight: 700;
+  padding: 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .upload-wrapper .btn:hover {
-    background-color: #c89a6f;
+  background-color: #c89a6f;
 }
 
 /* Untuk notifikasi */
 .alert.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    border-color: #c3e6cb;
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    border-radius: 0.5rem;
+  background-color: #d4edda;
+  color: #155724;
+  border-color: #c3e6cb;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.5rem;
 }
-.alert.alert-danger, .alert.alert-warning {
-    background-color: #f8d7da;
-    color: #721c24;
-    border-color: #f5c6cb;
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    border-radius: 0.5rem;
+.alert.alert-danger,
+.alert.alert-warning {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.5rem;
 }
 
-.page-section { padding: 8rem 7% 4rem; }
+.page-section {
+  padding: 8rem 7% 4rem;
+}
 
 .tracking-form-container,
 .tracking-result-container,
 .queue-board-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2.5rem;
-    background-color: #fff;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2.5rem;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 .tracking-form-container h2,
 .tracking-result-container h3,
 .queue-board-container h3 {
-    text-align: center;
-    color: var(--primary);
-    margin-bottom: 0.5rem;
-    font-size: 2.2rem;
+  text-align: center;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+  font-size: 2.2rem;
 }
 
 .tracking-form-container p {
-    text-align: center;
-    margin-bottom: 2rem;
-    font-size: 1.4rem;
-    color: #666;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.4rem;
+  color: #666;
 }
 
 /* --- Style untuk Form Pencarian --- */
 .tracking-form-container form {
-    display: flex;
-    gap: 1rem;
+  display: flex;
+  gap: 1rem;
 }
 
 .tracking-form-container input[type="text"] {
-    flex: 1; /* Membuat input mengambil sisa ruang */
-    padding: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 0.5rem;
-    font-size: 1.6rem;
+  flex: 1; /* Membuat input mengambil sisa ruang */
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  font-size: 1.6rem;
 }
 
 .tracking-form-container .btn {
-    padding: 1rem 2rem;
-    border: none;
-    background-color: var(--primary);
-    color: #fff;
-    font-size: 1.6rem;
-    font-weight: 700;
-    border-radius: 0.5rem;
-    cursor: pointer;
+  padding: 1rem 2rem;
+  border: none;
+  background-color: var(--primary);
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  cursor: pointer;
 }
 .tracking-form-container .btn:hover {
-    background-color: #c89a6f;
+  background-color: #c89a6f;
 }
-
 
 /* --- Style untuk Papan Antrean Publik --- */
 .queue-board-container .list-group {
-    list-style: none;
-    padding-left: 0;
+  list-style: none;
+  padding-left: 0;
 }
 
 .queue-board-container .list-group-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.2rem 1.5rem;
-    border: 1px solid #ddd;
-    margin-bottom: -1px; /* Menyatukan border */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 1.5rem;
+  border: 1px solid #ddd;
+  margin-bottom: -1px; /* Menyatukan border */
 }
 
 .queue-board-container .list-group-item:first-child {
-    border-top-left-radius: 0.5rem;
-    border-top-right-radius: 0.5rem;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
 }
 .queue-board-container .list-group-item:last-child {
-    border-bottom-left-radius: 0.5rem;
-    border-bottom-right-radius: 0.5rem;
-    margin-bottom: 0;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  margin-bottom: 0;
 }
 
 /* Style untuk Badge Status (Pending/Diproses) */
 .badge {
-    display: inline-block;
-    padding: .35em .65em;
-    font-size: .9em;
-    font-weight: 700;
-    line-height: 1;
-    color: #fff;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: baseline;
-    border-radius: .25rem;
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  font-size: 0.9em;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem;
 }
-.bg-primary { background-color: var(--primary) !important; }
-.bg-danger { background-color: #dc3545 !important; }
-
+.bg-primary {
+  background-color: var(--primary) !important;
+}
+.bg-danger {
+  background-color: #dc3545 !important;
+}
 
 /* --- Style untuk Progress Bar Status (Akan terlihat setelah mencari) --- */
 .progress-bar-container {
-    display: flex;
-    justify-content: space-between;
-    list-style: none;
-    padding: 0;
-    margin: 2.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  padding: 0;
+  margin: 2.5rem 0;
 }
 .progress-step {
-    text-align: center;
-    flex: 1;
-    position: relative;
+  text-align: center;
+  flex: 1;
+  position: relative;
 }
 .progress-step .step-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #e0e0e0;
-    color: white;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-    border: 3px solid #e0e0e0;
-    transition: all 0.4s ease;
-    z-index: 2;
-    position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  border: 3px solid #e0e0e0;
+  transition: all 0.4s ease;
+  z-index: 2;
+  position: relative;
 }
 .progress-step .step-label {
-    margin-top: 0.8rem;
-    font-size: 1.2rem;
-    color: #999;
-    transition: all 0.4s ease;
+  margin-top: 0.8rem;
+  font-size: 1.2rem;
+  color: #999;
+  transition: all 0.4s ease;
 }
 /* Style untuk garis penghubung */
 .progress-step:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 18px;
-    left: 50%;
-    width: 100%;
-    height: 4px;
-    background-color: #e0e0e0;
-    z-index: 1;
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  width: 100%;
+  height: 4px;
+  background-color: #e0e0e0;
+  z-index: 1;
 }
 
 /* Style untuk status AKTIF */
 .progress-step.active .step-icon {
-    background-color: #ffc107; /* Kuning */
-    border-color: #ffc107;
+  background-color: #ffc107; /* Kuning */
+  border-color: #ffc107;
 }
 .progress-step.active .step-label {
-    color: #333;
-    font-weight: bold;
+  color: #333;
+  font-weight: bold;
 }
 
 /* Style untuk status SELESAI */
 .progress-step.completed .step-icon {
-    background-color: #198754; /* Hijau */
-    border-color: #198754;
+  background-color: #198754; /* Hijau */
+  border-color: #198754;
 }
 .progress-step.completed .step-label {
-    color: #333;
+  color: #333;
 }
 .progress-step.completed::after {
-    background-color: #198754; /* Garis Hijau */
+  background-color: #198754; /* Garis Hijau */
 }

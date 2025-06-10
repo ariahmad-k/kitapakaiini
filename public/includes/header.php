@@ -37,11 +37,11 @@ include '../backend/koneksi.php'; // Pastikan koneksi database sudah benar
             <a href="index.php#about">Tentang Kami</a>
             <a href="menu.php">Menu</a>
             <a href="lacak.php">Lacak Pesanan</a>
+            <a href="index.php#faq">FAQ</a>
             <a href="kontak.php">Kontak</a>
         </div>
 
         <div class="navbar-extra">
-            <a href="#" id="search-button"><i data-feather="search"></i></a>
             <a href="keranjang.php" id="shopping-cart-button">
                 <i data-feather="shopping-cart"></i>
                 <span class="cart-item-count" style="display:none; background-color:red; color:white; border-radius:50%; padding: 0.1rem 0.5rem; font-size: 0.8rem; position:absolute; top:0; right:0;">0</span>

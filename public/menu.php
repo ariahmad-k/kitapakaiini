@@ -40,24 +40,26 @@ $result_produk = mysqli_query($koneksi, $sql_produk);
                     echo '<div class="row">'; // Buka div.row baru untuk setiap kategori
                 }
         ?>
-                <div class="menu-card">
-                    <img src="../backend/assets/img/produk/<?= htmlspecialchars($row['poto_produk'] ?? 'default.jpg') ?>" 
-                         alt="<?= htmlspecialchars($row['nama_produk'] ?? 'Gambar Produk') ?>" 
-                         class="menu-card-img">
-                    
-                    <h3 class="menu-card-title">- <?= htmlspecialchars($row['nama_produk'] ?? 'Nama Produk') ?> -</h3>
-                    
-                    <p class="menu-card-price">Rp <?= number_format($row['harga'] ?? 0, 0, ',', '.') ?></p>
-                    
-                    <div class="add-to-cart-btn">
-                        <button class="btn" 
-                                data-id="<?= htmlspecialchars($row['id_produk'] ?? '') ?>"
-                                data-nama="<?= htmlspecialchars($row['nama_produk'] ?? 'Produk') ?>"
-                                data-harga="<?= htmlspecialchars($row['harga'] ?? 0) ?>">
-                            <i data-feather="shopping-cart"></i> Tambah
-                        </button>
+            <div class = "menu-container">
+                    <div class="menu-card">
+                        <img src="../backend/assets/img/produk/<?= htmlspecialchars($row['poto_produk'] ?? 'default.jpg') ?>" 
+                            alt="<?= htmlspecialchars($row['nama_produk'] ?? 'Gambar Produk') ?>" 
+                            class="menu-card-img">
+                        
+                        <h3 class="menu-card-title">- <?= htmlspecialchars($row['nama_produk'] ?? 'Nama Produk') ?> -</h3>
+                        
+                        <p class="menu-card-price">Rp <?= number_format($row['harga'] ?? 0, 0, ',', '.') ?></p>
+                        
+                        <div class="add-to-cart-btn">
+                            <button class="btn" 
+                                    data-id="<?= htmlspecialchars($row['id_produk'] ?? '') ?>"
+                                    data-nama="<?= htmlspecialchars($row['nama_produk'] ?? 'Produk') ?>"
+                                    data-harga="<?= htmlspecialchars($row['harga'] ?? 0) ?>">
+                                <i data-feather="shopping-cart"></i> Tambah
+                            </button>
+                        </div>
                     </div>
-                </div>
+            </div>
         <?php
             } // Akhir loop while
             echo '</div>'; // Tutup div.row terakhir

@@ -63,7 +63,7 @@ $result_produk = mysqli_query($koneksi, $sql_produk);
     <div class="row">
         <?php while ($row = mysqli_fetch_assoc($result_produk)) : ?>
 
-
+        <div class = "menu-container">
             <div class="menu-card">
 
                 <img src="../backend/assets/img/produk/<?= htmlspecialchars($row['poto_produk'] ?? 'default.jpg') ?>"
@@ -83,12 +83,47 @@ $result_produk = mysqli_query($koneksi, $sql_produk);
                     </button>
                 </div>
             </div>
+        </div>
         <?php endwhile; ?>
+    </div>
+</section>
+<section id = "faq" class ="faq">
+    <h2><span>FAQ</span></h2>
+    <p>Pertanyaan Yang Sering Di ajukan, 
+        Untuk membantu beberapa pertanyaan umum Barudak Mang Wiro seputar Kue Balok Mang Wiro, berikut beberapa pertanyaan dan jawabannya:
+    </p>
+    <div class="faq-container">
+    <div class="faq-card">
+        <details>
+            <summary>1. Bagaimana Cara Pesan Online?</summary>
+            <p>Kamu bisa Klik di navigasi bar "Menu" atau bisa langsung di halaman utama
+                scroll kebawah di bagian "Menu Kami".
+            </p>
+        </details>
+    </div>
+    <div class="faq-card">
+        <details>
+            <summary>2. Bagaimana cara pembayaran pesan online ?</summary>
+            <p>Kamu bisa melakukan membayar dengan QRIS, Transfer Bank dan E-wallet.</p>
+        </details>
+    </div>
+    <div class="faq-card">
+        <details>
+            <summary>3. Dimanakah lokasi Kue Balok Mang Wiro?</summary>
+            <p>Outlet kami ada di jalan Otista Samping SMPN 3 Subang.lebih lengkapnya ada dibagian "Tentang Kami".</p>
+        </details>
+    </div>
+    <div class="faq-card">
+        <details>
+            <summary>4. Tingkat kematang Kue Balok </summary>
+            <p>tingkat Kematangan Kue Balok itu sendiri selera dari kami ada 2 pilih jika ingin lumer saat di makan kamu bisa Request setengah mateng dan 
+                jika ingin sedikit padat saat di makan anda bisa Request mateng.</p>
+        </details>
     </div>
 </section>
 <section id="contact" class="contact">
     <h2><span>Kontak</span> Kami</h2>
-    <p>Punya pertanyaan atau masukan? Jangan ragu untuk menghubungi kami!</p>
+    <p>CQM8+R2W, Karanganyar, Kec. Subang, Kabupaten Subang, Jawa Barat 41211</p>
     <div class="row">
         <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3963.6532678371236!2d107.76250947604129!3d-6.565374464182671!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e693b6ef7c6693f%3A0x7f77ee95ffd77873!2sKue%20Balok%20Mang%20Wiro!5e0!3m2!1sid!2sid!4v1747817984686!5m2!1sid!2sid"
             allowfullscreen=""
