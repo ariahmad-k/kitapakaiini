@@ -5,6 +5,7 @@ $page_title = "Beranda - Kue Mang Wiro";
 include 'includes/header.php';
 
 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kirim_pesan'])) {
     // 1. Ambil data dari form
     $nama = $_POST['nama'];
