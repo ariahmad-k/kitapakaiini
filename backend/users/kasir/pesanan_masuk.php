@@ -8,82 +8,109 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['jabatan'] !== 'kasir') {
     exit;
 }
 
-// 2. LOGIKA PEMROSESAN FORM (POST REQUEST)
-// GANTI SELURUH BLOK if ($_SERVER...) ANDA DENGAN INI
-
+// 2. LOGIKA PEMROSESAN SEMUA AKSI (POST REQUEST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $redirect = true;
 
     // --- Aksi: Validasi Pesanan Online ---
     if (isset($_POST['validasi_pesanan'])) {
         $id_pesanan = $_POST['id_pesanan'];
-        // PENTING: Ambil ID kasir yang sedang bertugas dari sesi
         $id_kasir_yang_validasi = $_SESSION['user']['id'];
-
         mysqli_begin_transaction($koneksi);
         try {
-            // Hitung "Beban Dapur"
             $sql_beban = "SELECT SUM(dp.jumlah) AS total_item_aktif FROM detail_pesanan dp JOIN pesanan p ON dp.id_pesanan = p.id_pesanan WHERE p.status_pesanan IN ('pending', 'diproses') AND (dp.id_produk LIKE 'KB%' OR dp.id_produk LIKE 'KS%')";
             $result_beban = mysqli_query($koneksi, $sql_beban);
             $beban_dapur = mysqli_fetch_assoc($result_beban)['total_item_aktif'] ?? 0;
-            
             $status_baru = ($beban_dapur < 50) ? 'diproses' : 'pending';
 
-            // PERBAIKAN UTAMA: Query UPDATE sekarang juga mengisi id_karyawan
             $stmt_update = mysqli_prepare($koneksi, "UPDATE pesanan SET status_pesanan = ?, id_karyawan = ? WHERE id_pesanan = ? AND status_pesanan = 'menunggu_konfirmasi'");
-            
-            // PERBAIKAN UTAMA: Sesuaikan bind_param menjadi "sis" (string, integer, string)
             mysqli_stmt_bind_param($stmt_update, "sis", $status_baru, $id_kasir_yang_validasi, $id_pesanan);
-            
             mysqli_stmt_execute($stmt_update);
 
             mysqli_commit($koneksi);
-            $_SESSION['notif'] = ['pesan' => 'Pesanan berhasil divalidasi dan masuk antrean.', 'tipe' => 'success'];
-
+            $_SESSION['notif'] = ['pesan' => "Pesanan #$id_pesanan divalidasi.", 'tipe' => 'success', 'print_url' => "detail_pesanan.php?id=$id_pesanan"];
         } catch (Exception $e) {
             mysqli_rollback($koneksi);
-            $_SESSION['notif'] = ['pesan' => 'Gagal memvalidasi pesanan. Error: ' . $e->getMessage(), 'tipe' => 'danger'];
+            $_SESSION['notif'] = ['pesan' => 'Gagal memvalidasi pesanan: ' . $e->getMessage(), 'tipe' => 'danger'];
         }
     }
 
-    // --- Aksi: Selesaikan Pesanan ---
-    if (isset($_POST['selesaikan_pesanan'])) {
+    // --- Aksi: Batalkan Pesanan Online (dengan pengembalian stok) ---
+    if (isset($_POST['batalkan_pesanan'])) {
         $id_pesanan = $_POST['id_pesanan'];
-        $stmt_selesai = mysqli_prepare($koneksi, "UPDATE pesanan SET status_pesanan = 'selesai' WHERE id_pesanan = ?");
+        mysqli_begin_transaction($koneksi);
+        try {
+            $stmt_get_items = mysqli_prepare($koneksi, "SELECT id_produk, jumlah FROM detail_pesanan WHERE id_pesanan = ?");
+            mysqli_stmt_bind_param($stmt_get_items, "s", $id_pesanan);
+            mysqli_stmt_execute($stmt_get_items);
+            $items_to_return = mysqli_fetch_all(mysqli_stmt_get_result($stmt_get_items), MYSQLI_ASSOC);
+            mysqli_stmt_close($stmt_get_items);
+
+            if (!empty($items_to_return)) {
+                $stmt_return_stock = mysqli_prepare($koneksi, "UPDATE produk SET stok = stok + ? WHERE id_produk = ?");
+                foreach ($items_to_return as $item) {
+                    mysqli_stmt_bind_param($stmt_return_stock, "is", $item['jumlah'], $item['id_produk']);
+                    mysqli_stmt_execute($stmt_return_stock);
+                }
+                mysqli_stmt_close($stmt_return_stock);
+            }
+
+            $stmt_batal = mysqli_prepare($koneksi, "UPDATE pesanan SET status_pesanan = 'dibatalkan' WHERE id_pesanan = ? AND status_pesanan = 'menunggu_konfirmasi'");
+            mysqli_stmt_bind_param($stmt_batal, "s", $id_pesanan);
+            mysqli_stmt_execute($stmt_batal);
+            mysqli_stmt_close($stmt_batal);
+
+            mysqli_commit($koneksi);
+            $_SESSION['notif'] = ['pesan' => "Pesanan #$id_pesanan telah dibatalkan dan stok dikembalikan.", 'tipe' => 'warning'];
+        } catch (Exception $e) {
+            mysqli_rollback($koneksi);
+            $_SESSION['notif'] = ['pesan' => 'Gagal membatalkan pesanan: ' . $e->getMessage(), 'tipe' => 'danger'];
+        }
+    }
+
+    // --- Aksi: Tandai Siap Diambil ---
+    if (isset($_POST['tandai_siap'])) {
+        $id_pesanan = $_POST['id_pesanan'];
+        $stmt_siap = mysqli_prepare($koneksi, "UPDATE pesanan SET status_pesanan = 'siap_diambil' WHERE id_pesanan = ? AND status_pesanan IN ('pending', 'diproses')");
+        mysqli_stmt_bind_param($stmt_siap, "s", $id_pesanan);
+        if (mysqli_stmt_execute($stmt_siap)) {
+            $_SESSION['notif'] = ['pesan' => "Pesanan #$id_pesanan ditandai Siap Diambil.", 'tipe' => 'success'];
+        } else {
+            $_SESSION['notif'] = ['pesan' => 'Gagal mengubah status.', 'tipe' => 'danger'];
+        }
+    }
+
+    // --- Aksi: Selesaikan Pesanan (Serahkan ke Pelanggan) ---
+    if (isset($_POST['serahkan_pesanan'])) {
+        $id_pesanan = $_POST['id_pesanan'];
+        $stmt_selesai = mysqli_prepare($koneksi, "UPDATE pesanan SET status_pesanan = 'selesai' WHERE id_pesanan = ? AND status_pesanan = 'siap_diambil'");
         mysqli_stmt_bind_param($stmt_selesai, "s", $id_pesanan);
         if (mysqli_stmt_execute($stmt_selesai)) {
-            $_SESSION['notif'] = ['pesan' => "Pesanan #$id_pesanan telah ditandai selesai.", 'tipe' => 'info'];
+            $_SESSION['notif'] = ['pesan' => "Pesanan #$id_pesanan telah diserahkan dan selesai.", 'tipe' => 'info'];
         } else {
             $_SESSION['notif'] = ['pesan' => 'Gagal menyelesaikan pesanan.', 'tipe' => 'danger'];
         }
     }
 
-    if ($redirect) {
-        header('Location: pesanan_masuk.php');
-        exit;
-    }
+    header('Location: pesanan_masuk.php');
+    exit;
 }
 
-
 // 3. LOGIKA PENGAMBILAN DATA UNTUK DITAMPILKAN
-// a. Ambil pesanan online yang butuh konfirmasi
-$sql_online = "SELECT * FROM pesanan WHERE status_pesanan = 'menunggu_konfirmasi' ORDER BY tgl_pesanan ASC";
-$result_online = mysqli_query($koneksi, $sql_online);
-$pesanan_online = mysqli_fetch_all($result_online, MYSQLI_ASSOC);
+$pesanan_online = mysqli_fetch_all(mysqli_query($koneksi, "SELECT * FROM pesanan WHERE status_pesanan = 'menunggu_konfirmasi' ORDER BY tgl_pesanan ASC"), MYSQLI_ASSOC);
+$antrean_pesanan = mysqli_fetch_all(mysqli_query($koneksi, "SELECT * FROM pesanan WHERE status_pesanan IN ('pending', 'diproses') ORDER BY FIELD(status_pesanan, 'diproses', 'pending'), tgl_pesanan ASC"), MYSQLI_ASSOC);
+$pesanan_siap = mysqli_fetch_all(mysqli_query($koneksi, "SELECT * FROM pesanan WHERE status_pesanan = 'siap_diambil' ORDER BY tgl_pesanan ASC"), MYSQLI_ASSOC);
 
-// b. Ambil pesanan di antrean dapur
-$sql_antrean = "SELECT * FROM pesanan WHERE status_pesanan IN ('pending', 'diproses') ORDER BY tgl_pesanan ASC";
-$result_antrean = mysqli_query($koneksi, $sql_antrean);
-$antrean_pesanan = mysqli_fetch_all($result_antrean, MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <title>Pesanan Masuk & Antrean - Kasir</title>
     <link href="../../css/styles.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 </head>
+
 <body class="sb-nav-fixed">
     <?php include 'inc/navbar.php'; ?>
     <div id="layoutSidenav">
@@ -100,13 +127,19 @@ $antrean_pesanan = mysqli_fetch_all($result_antrean, MYSQLI_ASSOC);
                     </ol>
 
                     <?php
+                    // Logika notifikasi untuk menampilkan tombol cetak
                     if (isset($_SESSION['notif'])) {
                         $notif = $_SESSION['notif'];
-                        echo '<div class="alert alert-' . htmlspecialchars($notif['tipe']) . ' alert-dismissible fade show" role="alert">' . htmlspecialchars($notif['pesan']) . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+                        echo '<div class="alert alert-' . htmlspecialchars($notif['tipe']) . ' alert-dismissible fade show" role="alert">';
+                        echo '<span>' . htmlspecialchars($notif['pesan']) . '</span>';
+                        if (isset($notif['print_url'])) {
+                            echo '<a href="' . htmlspecialchars($notif['print_url']) . '" target="_blank" class="btn btn-sm btn-light ms-3 fw-bold"><i class="fas fa-print"></i> Cetak Struk Dapur</a>';
+                        }
+                        echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
                         unset($_SESSION['notif']);
                     }
                     ?>
-                    
+
                     <div class="row">
                         <div class="col-lg-6">
                             <div class="card mb-4">
@@ -114,7 +147,7 @@ $antrean_pesanan = mysqli_fetch_all($result_antrean, MYSQLI_ASSOC);
                                 <div class="card-body" style="max-height: 70vh; overflow-y: auto;">
                                     <?php if (!empty($pesanan_online)): ?>
                                         <?php foreach ($pesanan_online as $pesanan): ?>
-                                            <div class="card mb-3">
+                                            <div class="card mb-3 shadow-sm">
                                                 <div class="card-body">
                                                     <h5 class="card-title"><?= htmlspecialchars($pesanan['nama_pemesan']) ?></h5>
                                                     <h6 class="card-subtitle mb-2 text-muted"><?= htmlspecialchars($pesanan['id_pesanan']) ?></h6>
@@ -125,10 +158,9 @@ $antrean_pesanan = mysqli_fetch_all($result_antrean, MYSQLI_ASSOC);
                                                     <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#buktiBayarModal" data-bukti-bayar="<?= htmlspecialchars($pesanan['bukti_pembayaran']) ?>">
                                                         Lihat Bukti Bayar
                                                     </button>
-                                                    <form method="POST" class="d-inline" onsubmit="return confirm('Anda yakin pembayaran ini valid dan ingin memproses pesanan?');">
-                                                        <input type="hidden" name="id_pesanan" value="<?= $pesanan['id_pesanan'] ?>">
-                                                        <button type="submit" name="validasi_pesanan" class="btn btn-success btn-sm">Validasi & Proses</button>
-                                                    </form>
+                                                    <form method="POST" action="" class="d-inline" onsubmit="return confirm('Validasi pesanan ini?');"><input type="hidden" name="id_pesanan" value="<?= $pesanan['id_pesanan'] ?>"><button type="submit" name="validasi_pesanan" class="btn btn-success btn-sm">Validasi</button></form>
+                                                    <form method="POST" action="" class="d-inline" onsubmit="return confirm('Yakin batalkan pesanan ini? Stok akan dikembalikan.');"><input type="hidden" name="id_pesanan" value="<?= $pesanan['id_pesanan'] ?>"><button type="submit" name="batalkan_pesanan" class="btn btn-danger btn-sm">Batalkan</button></form>
+
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
@@ -154,8 +186,8 @@ $antrean_pesanan = mysqli_fetch_all($result_antrean, MYSQLI_ASSOC);
                                                 <div class="card-body">
                                                     <p>Pesanan dari: <strong><?= ucfirst($antrean['tipe_pesanan']) ?></strong></p>
                                                     <form method="POST" class="d-inline" onsubmit="return confirm('Selesaikan pesanan ini?');">
-                                                         <input type="hidden" name="id_pesanan" value="<?= $antrean['id_pesanan'] ?>">
-                                                         <button type="submit" name="selesaikan_pesanan" class="btn btn-success btn-sm w-100">Selesaikan Pesanan</button>
+                                                        <input type="hidden" name="id_pesanan" value="<?= $antrean['id_pesanan'] ?>">
+                                                        <button type="submit" name="selesaikan_pesanan" class="btn btn-success btn-sm w-100">Selesaikan Pesanan</button>
                                                     </form>
                                                 </div>
                                             </div>
@@ -169,7 +201,7 @@ $antrean_pesanan = mysqli_fetch_all($result_antrean, MYSQLI_ASSOC);
                     </div>
                 </div>
             </main>
-            </div>
+        </div>
     </div>
 
     <div class="modal fade" id="buktiBayarModal" tabindex="-1" aria-labelledby="buktiBayarModalLabel" aria-hidden="true">
@@ -199,4 +231,5 @@ $antrean_pesanan = mysqli_fetch_all($result_antrean, MYSQLI_ASSOC);
         });
     </script>
 </body>
+
 </html>
