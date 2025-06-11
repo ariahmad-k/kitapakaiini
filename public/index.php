@@ -28,13 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kirim_pesan'])) {
     exit;
 }
 
-
-// --- LOGIKA MENGAMBIL PRODUK UNGGULAN ---
-// Perbaikan: Hanya mengambil produk 'aktif' dan menggunakan kolom 'harga'
-$sql_produk = "SELECT nama_produk, harga, poto_produk 
+// --- LOGIKA MENGAMBIL SEMUA PRODUK AKTIF ---
+$sql_produk = "SELECT id_produk, nama_produk, harga, poto_produk 
                FROM produk 
-               WHERE status_produk = 'aktif'"; // Batasi maksimal 8 produk unggulan yang tampil
-$result_produk = mysqli_query($koneksi, $sql_produk);
+               WHERE status_produk = 'aktif'
+               ORDER BY kategori, nama_produk"; // Diurutkan agar rapi
 ?>
 
 <section class="hero" id="home">

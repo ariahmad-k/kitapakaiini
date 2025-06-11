@@ -1,7 +1,7 @@
 <?php
 // Mengatur header agar output dikenali sebagai JSON
 header('Content-Type: application/json');
-include 'includes/koneksi.php';
+include '../backend/koneksi.php';
 
 // Default response jika terjadi error
 $response = ['stok' => 0, 'error' => true, 'message' => 'ID produk tidak disediakan.'];
