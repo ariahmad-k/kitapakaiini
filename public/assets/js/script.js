@@ -4,25 +4,50 @@
 
 // --- FUNGSI-FUNGSI UNTUK KERANJANG BELANJA ---
 
-function addToCart(product) {
-    // Ambil keranjang dari localStorage, atau buat objek kosong jika belum ada
+async function addToCart(product) {
+    // Ambil keranjang dari localStorage
     let cart = JSON.parse(localStorage.getItem('kueBalokCart')) || {};
+    
+    // Jumlah produk ini di keranjang saat ini
+    const currentQuantityInCart = cart[product.id] ? cart[product.id].jumlah : 0;
 
-    // Cek apakah produk sudah ada di keranjang
-    if (cart[product.id]) {
-        cart[product.id].jumlah++; // Jika sudah ada, tambah jumlahnya
-    } else {
-        // Jika belum ada, tambahkan sebagai item baru
-        cart[product.id] = {
-            nama: product.nama,
-            harga: product.harga,
-            jumlah: 1
-        };
+    try {
+        // 1. Kirim permintaan ke API cek_stok.php
+        const response = await fetch(`cek_stok.php?id=${product.id}`);
+        const data = await response.json();
+
+        // 2. Cek apakah ada error dari server atau stok tidak ditemukan
+        if (data.error) {
+            alert(data.message);
+            return;
+        }
+
+        const serverStock = data.stok;
+
+        // 3. Validasi: Bandingkan stok server dengan jumlah yang ingin ditambahkan
+        if (serverStock > currentQuantityInCart) {
+            // Jika stok masih tersedia, tambahkan ke keranjang
+            if (cart[product.id]) {
+                cart[product.id].jumlah++;
+            } else {
+                cart[product.id] = {
+                    nama: product.nama,
+                    harga: product.harga,
+                    jumlah: 1
+                };
+            }
+            localStorage.setItem('kueBalokCart', JSON.stringify(cart));
+            alert(`'${product.nama}' berhasil ditambahkan ke keranjang!`);
+            updateCartIcon();
+        } else {
+            // Jika stok habis
+            alert(`Maaf, stok untuk '${product.nama}' tidak mencukupi (sisa: ${serverStock}).`);
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat memeriksa stok.');
     }
-
-    localStorage.setItem('kueBalokCart', JSON.stringify(cart));
-    alert(`'${product.nama}' telah ditambahkan ke keranjang!`);
-    updateCartIcon();
 }
 
 function updateCartIcon() {

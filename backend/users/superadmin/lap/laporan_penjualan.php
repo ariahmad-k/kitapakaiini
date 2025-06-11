@@ -78,16 +78,32 @@ if ($jenis_laporan === 'pemasukan') {
         $data_transaksi_per_jam[] = $sales_by_hour[$hour] ?? 0;
     }
 } elseif ($jenis_laporan === 'kategori_pembayaran') {
-    $judul_halaman = "Analisis Kategori & Pembayaran";
-    // Query Kategori
-    $sql_kategori = "SELECT p.kategori, SUM(dp.sub_total) as total_pendapatan FROM detail_pesanan dp JOIN produk p ON dp.id_produk = p.id_produk JOIN pesanan pk ON dp.id_pesanan = pk.id_pesanan WHERE DATE(pk.tgl_pesanan) BETWEEN ? AND ? GROUP BY p.kategori";
-    $stmt_kategori = mysqli_prepare($koneksi, $sql_kategori);
-    mysqli_stmt_bind_param($stmt_kategori, "ss", $tanggal_mulai, $tanggal_selesai);
-    mysqli_stmt_execute($stmt_kategori);
-    $data_kategori = mysqli_fetch_all(mysqli_stmt_get_result($stmt_kategori), MYSQLI_ASSOC);
+    $judul_halaman = "Analisis Tipe Produk & Pembayaran";
 
-    // Query Metode Pembayaran
-    $sql_pembayaran = "SELECT metode_pembayaran, COUNT(id_pesanan) as jumlah_penggunaan FROM pesanan WHERE DATE(tgl_pesanan) BETWEEN ? AND ? GROUP BY metode_pembayaran";
+    // --- PERUBAHAN: Query untuk Tipe Produk (bukan lagi Kategori) ---
+    $sql_tipe_produk = "SELECT 
+                            CASE 
+                                WHEN LEFT(p.id_produk, 2) = 'KB' THEN 'Kue Balok'
+                                WHEN LEFT(p.id_produk, 2) = 'KS' THEN 'Ketan Susu'
+                                WHEN LEFT(p.id_produk, 2) = 'OT' THEN 'Makanan Lain'
+                                WHEN LEFT(p.id_produk, 2) = 'DK' THEN 'Minuman'
+                                ELSE 'Lainnya' 
+                            END AS tipe_produk,
+                            SUM(dp.sub_total) as total_pendapatan 
+                        FROM detail_pesanan dp 
+                        JOIN produk p ON dp.id_produk = p.id_produk 
+                        JOIN pesanan pk ON dp.id_pesanan = pk.id_pesanan 
+                        WHERE pk.status_pesanan = 'selesai' AND DATE(pk.tgl_pesanan) BETWEEN ? AND ? 
+                        GROUP BY tipe_produk
+                        ORDER BY total_pendapatan DESC";
+
+    $stmt_tipe_produk = mysqli_prepare($koneksi, $sql_tipe_produk);
+    mysqli_stmt_bind_param($stmt_tipe_produk, "ss", $tanggal_mulai, $tanggal_selesai);
+    mysqli_stmt_execute($stmt_tipe_produk);
+    $data_tipe_produk = mysqli_fetch_all(mysqli_stmt_get_result($stmt_tipe_produk), MYSQLI_ASSOC);
+
+    // Query Metode Pembayaran (tetap sama)
+    $sql_pembayaran = "SELECT metode_pembayaran, COUNT(id_pesanan) as jumlah_penggunaan FROM pesanan WHERE status_pesanan = 'selesai' AND DATE(tgl_pesanan) BETWEEN ? AND ? GROUP BY metode_pembayaran";
     $stmt_pembayaran = mysqli_prepare($koneksi, $sql_pembayaran);
     mysqli_stmt_bind_param($stmt_pembayaran, "ss", $tanggal_mulai, $tanggal_selesai);
     mysqli_stmt_execute($stmt_pembayaran);
@@ -104,7 +120,7 @@ if ($jenis_laporan === 'pemasukan') {
     <link href="../../../css/styles.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="icon" type="image/png" href="../../../assets/img/logo-kuebalok.png"> 
+    <link rel="icon" type="image/png" href="../../../assets/img/logo-kuebalok.png">
 
 </head>
 
@@ -290,8 +306,8 @@ if ($jenis_laporan === 'pemasukan') {
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="card mb-4">
-                                    <div class="card-header bg-info text-white"><i class="fas fa-tags me-1"></i>Pendapatan per Kategori</div>
-                                    <div class="card-body"><canvas id="kategoriChart" height="200"></canvas></div>
+                                    <div class="card-header bg-info text-white"><i class="fas fa-tags me-1"></i>Pendapatan per Tipe Produk</div>
+                                    <div class="card-body"><canvas id="tipeProdukChart" height="200"></canvas></div>
                                 </div>
                             </div>
                             <div class="col-lg-6">
@@ -305,9 +321,9 @@ if ($jenis_laporan === 'pemasukan') {
             </main>
         </div>
     </div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="../../../js/scripts.js"></script>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
     <script src="../../../js/datatables-simple-demo.js"></script>
 
@@ -340,6 +356,19 @@ if ($jenis_laporan === 'pemasukan') {
                 });
             <?php endif; ?>
 
+            <?php if ($jenis_laporan === 'kategori_pembayaran' && isset($data_tipe_produk)): ?>
+                new Chart(document.getElementById('tipeProdukChart'), {
+                    type: 'pie',
+                    data: {
+                        labels: <?php echo json_encode(array_column($data_tipe_produk, 'tipe_produk')); ?>,
+                        datasets: [{
+                            data: <?php echo json_encode(array_column($data_tipe_produk, 'total_pendapatan')); ?>,
+                            backgroundColor: ['#0275d8', '#5cb85c', '#f0ad4e', '#d9534f', '#343a40'],
+                        }]
+                    }
+                });
+            <?php endif; ?>
+            
             <?php if ($jenis_laporan === 'kategori_pembayaran' && isset($data_kategori)): ?>
                 new Chart(document.getElementById('kategoriChart'), {
                     type: 'pie',
